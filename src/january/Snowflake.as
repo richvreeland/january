@@ -46,13 +46,13 @@ package january
 		{				
 			if (Helpers.chanceRoll(75))
 				type = "Small";
-			else if (Helpers.chanceRoll(5))
+			else if (Helpers.chanceRoll(1))
 				type = "Key";
 			else if (Helpers.chanceRoll(5))
 				type = "Octave";
-			else if (Helpers.chanceRoll(1))
+			else if (Helpers.chanceRoll(5))
 				type = "Chord";
-			else if (Helpers.chanceRoll(10))
+			else if (Helpers.chanceRoll(5))
 				type = "Pedal";
 			else
 				type = "Large";

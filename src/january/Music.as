@@ -188,7 +188,7 @@ package january
 		 	else if (previous == Cs2)	generateNextInterval(Fs1,D2,G2,B2,Cs3);
 			else if (previous == D2)	generateNextInterval(Cs2,E2,Fs2);
 			else if (previous == E2) 	generateNextInterval(D2,Fs2,G2,B1,B2,B3,Cs3,E3,E1);
-			else if (previous == Fs2)	generateNextInterval(E2,G2,A2,D3);
+			else if (previous == Fs2)	generateNextInterval(D2,E2,G2,A2,D3);
 			else if (previous == G2)	generateNextInterval(Fs2,A2,B1,D2,E2,B2,D3,E3,Fs3,A3,B3);
 			else if (previous == A2)	generateNextInterval(G2,B2,E3,D2);
 			else if (previous == B2)	generateNextInterval(A2,Cs3,Fs3,G2,E2,D2);

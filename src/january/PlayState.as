@@ -42,7 +42,7 @@ package january
 			// Build Skymap		
 			_sky = new FlxSprite(0, 0, _skyImg);
 			_sky.scrollFactor.x = 0;
-			_sky.velocity.x = -5;
+			_sky.velocity.x = -2;
 			add(_sky);
 			
 			// Build Tilemap
@@ -88,7 +88,7 @@ package january
 			FlxG.overlap(snow, player, player.onCollision);
 			
 			// Loop Sky Background
-			if (_skyMap.x < -716) _skyMap.x = 0;
+			if (_sky.x < -716) _sky.x = 0;
 
 		}
 		
