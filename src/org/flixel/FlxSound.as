@@ -473,6 +473,12 @@ package org.flixel
 			updateTransform();
 		}
 		
+		/** THIS IS AN EDIT */
+		public function set pan(Pan:Number):void
+		{
+			_transform.pan = Pan;
+		}
+		
 		/**
 		 * Returns the currently selected "real" volume of the sound (takes fades and proximity into account).
 		 * 
