@@ -27,6 +27,7 @@
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
+<<<<<<< HEAD
   <applications>
     <application path="january/January.as"/>
   </applications>
