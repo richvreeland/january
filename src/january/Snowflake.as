@@ -1,17 +1,26 @@
 package january
 {
 	import flash.utils.getDefinitionByName;
+	
 	import january.snowflakes.*;
+	
 	import org.flixel.*;
-	import org.flixel.plugin.photonstorm.*;
 	
 	public class Snowflake extends FlxSprite
 	{		
 		// List of classes for getDefinitionByName() to use
-		Chord; Large; Octave; Small; Wind; Key;
+		Chord; Large; Octave; Small; Pedal; Key;
 		
 		/** The type of snowflake in question. */
 		public static var type : String;
+		
+		public static var windX : Number = 0;
+		public static var windY : Number = 0;
+		
+		/** Whether or not pedal point mode is on. */
+		public static var pedalPointMode : Boolean = false;
+		
+		public static var headway : Number;
 		
 		/** The volume of the generated note */
 		public var noteVolume : Number = 0;
@@ -25,7 +34,9 @@ package january
 		
 		public function spawn():void
 		{
-			x = Math.random()*(FlxG.width);
+			headway = (-windX * 8);
+			
+			x = Math.random()*(FlxG.width + headway);
 			y = 0;
 			
 			exists = true;
@@ -33,16 +44,16 @@ package january
 		
 		public static function manage() : void
 		{				
-			if (FlxMath.chanceRoll(70))
+			if (Helpers.chanceRoll(75))
 				type = "Small";
-			else if (FlxMath.chanceRoll(10))
+			else if (Helpers.chanceRoll(5))
 				type = "Key";
-			else if (FlxMath.chanceRoll(5))
+			else if (Helpers.chanceRoll(5))
 				type = "Octave";
-			else if (FlxMath.chanceRoll(2.5))
+			else if (Helpers.chanceRoll(1))
 				type = "Chord";
-			else if (FlxMath.chanceRoll(1))
-				type = "Wind";
+			else if (Helpers.chanceRoll(10))
+				type = "Pedal";
 			else
 				type = "Large";
 			
@@ -53,17 +64,19 @@ package january
 			
 		}
 		
+		public function get velocityX():Number
+		{
+			return velocity.x;
+		}
+		
 		override public function update():void
 		{
 			//////////////
 			// MOVEMENT //
 			//////////////
 			
-			if (exists)
-			{
-				velocity.y = 10;
-				velocity.x = (Math.sin(y / 5) * 5);
-			}	
+			velocity.y = 10 + windY;
+			velocity.x = (Math.sin(y / 5) * 5) - 5 + windX;
 			
 			super.update();
 			
@@ -71,12 +84,12 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (y > FlxG.height || x < 0) kill();			
+			if (y > FlxG.height || x < (0 - width)) kill();			
 		}
 		
 		public function onLick():void
-		{
-			Audio.generate(noteVolume, x);
+		{			
+			Music.generate(noteVolume, x);
 			super.kill();
 		}
 	}

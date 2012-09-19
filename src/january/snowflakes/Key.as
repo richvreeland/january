@@ -19,20 +19,20 @@ package january.snowflakes
 		
 		public override function onLick():void
 		{			
-			var newKey:int = Helpers.randInt(0, Audio.keys.length - 1);
+			var newKey:int = Helpers.randInt(0, Music.keys.length - 1);
 			
 			// make sure that onLick, the Key flake always changes the key!
-			if (newKey == Audio.keyID)
+			if (newKey == Music.keyID)
 			{
-				Audio.keyID = newKey + 1;
-				if (Audio.keyID > Audio.keys.length - 1)
-					Audio.keyID -= 2;
+				Music.keyID = newKey + 1;
+				if (Music.keyID > Music.keys.length - 1)
+					Music.keyID -= 2;
 			}
 			else
-				Audio.keyID = newKey;
+				Music.keyID = newKey;
 			
-			Audio.octave();
-			super.onLick();
+			Music.chord();
+			super.kill();
 		}
 		
 	}

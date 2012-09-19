@@ -16,8 +16,8 @@ package january.snowflakes
 		
 		public override function onLick():void
 		{
-			super.onLick();
-			Audio.chord();
+			Music.chord();
+			super.kill();
 		}
 	}
 }

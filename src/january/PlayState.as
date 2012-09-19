@@ -15,6 +15,11 @@ package january
 		[Embed(source = "../assets/art/trees.png")] 	protected var _treeImg	: Class;
 		[Embed(source = "../assets/art/sky.png")] 		protected var _skyImg	: Class;
 		
+		//SOUNDS
+		[Embed(source = "../assets/audio/ambience.swf", symbol = "snow_01.aif")] protected var _ambience:Class;
+		[Embed(source = "../assets/audio/door_open.mp3")] 						 protected var _doorOpen:Class;
+		[Embed(source = "../assets/audio/door_close.mp3")] 						 protected var _doorClose:Class;
+		
 		protected var _ground: FlxTilemap;
 		protected var _trees : FlxTilemap;
 		protected var _sky 	 : FlxSprite;
@@ -27,6 +32,9 @@ package january
 		override public function create():void
 		{					
 			FlxG.mouse.hide();
+			
+			// Play Background Audio
+			FlxG.play(_ambience, 2, 0, true).fadeIn(1);
 			
 			// Set Background Color
 			FlxG.bgColor = 0xFFd8e3e5;
@@ -58,7 +66,7 @@ package january
 			add(snow);
 			
 			// Start Spawn Timer
-			spawnTimer = new FlxDelay(5);
+			spawnTimer = new FlxDelay(50);
 			spawnTimer.start();
 			
 			super.create();
@@ -71,7 +79,7 @@ package january
 				function():void
 				{
 					Snowflake.manage();
-					spawnTimer.reset(5);
+					spawnTimer.reset(50);
 				}
 			
 			super.update();

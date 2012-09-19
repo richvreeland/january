@@ -1,6 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
+	import org.flixel.*;
 	
 	public class Octave extends Snowflake
 	{
@@ -12,12 +13,14 @@ package january.snowflakes
 			super();
 			
 			loadGraphic(sprite);
+			noteVolume = Helpers.rand(0.1, 0.25);
 		}
 		
 		public override function onLick():void
 		{
-			super.onLick();
-			Audio.octave();	
+			Music.generate(noteVolume, 3*(FlxG.width/4));
+			super.kill();
+			Music.octave();	
 		}
 	}
 }

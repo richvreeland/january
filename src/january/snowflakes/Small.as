@@ -10,7 +10,7 @@ package january.snowflakes
 			super();
 			
 			makeGraphic(1, 1);
-			noteVolume = Helpers.rand(0.1, 0.5);
+			noteVolume = Helpers.rand(0.1, 0.25);
 		}
 
 	}
