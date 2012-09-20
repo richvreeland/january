@@ -5,8 +5,7 @@ package january.snowflakes
 	import org.flixel.plugin.photonstorm.*;
 	
 	public class Key extends Snowflake
-	{
-		
+	{	
 		[Embed(source="../assets/art/flakes/key.png")] private var sprite : Class;
 		
 		public function Key()
@@ -14,25 +13,28 @@ package january.snowflakes
 			super();
 			
 			loadGraphic(sprite);
+			
+			_pointValue = 1;
 			noteVolume = 0.5;
 		}
 		
 		public override function onLick():void
 		{			
-			var newKey:int = Helpers.randInt(0, Music.keys.length - 1);
+			super.onLick();
+			
+			var _newKey:int = Helpers.randInt(0, Music.keys.length - 1);
 			
 			// make sure that onLick, the Key flake always changes the key!
-			if (newKey == Music.keyID)
+			if (_newKey == Music.keyID)
 			{
-				Music.keyID = newKey + 1;
+				Music.keyID = _newKey + 1;
 				if (Music.keyID > Music.keys.length - 1)
 					Music.keyID -= 2;
 			}
 			else
-				Music.keyID = newKey;
+				Music.keyID = _newKey;
 			
-			Music.chord();
-			super.kill();
+			Music.chord(true);
 		}
 		
 	}

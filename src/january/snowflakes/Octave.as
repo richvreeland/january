@@ -4,23 +4,25 @@ package january.snowflakes
 	import org.flixel.*;
 	
 	public class Octave extends Snowflake
-	{
-		
+	{	
 		[Embed(source="../assets/art/flakes/octave.png")] private var sprite : Class;
 		
-		public function Octave()
+		public function Octave():void
 		{
 			super();
 			
 			loadGraphic(sprite);
+			
+			_pointValue = 1;
 			noteVolume = Helpers.rand(0.1, 0.25);
 		}
 		
 		public override function onLick():void
 		{
-			Music.generate(noteVolume, 3*(FlxG.width/4));
-			super.kill();
-			Music.octave();	
+			super.onLick();
+			
+			Music.generate(noteVolume, x);	
+			Music.octave();				
 		}
 	}
 }

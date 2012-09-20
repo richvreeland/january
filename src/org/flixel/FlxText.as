@@ -148,6 +148,13 @@ package org.flixel
 			calcFrame();
 		}
 		
+		/** EDIT.
+		 * The real width of the text, in pixels! 
+		 */
+		public function get realWidth():Number {
+			return _textField.textWidth;
+		}
+		
 		/**
 		 * The color of the text being displayed.
 		 */

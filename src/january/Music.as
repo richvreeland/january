@@ -1,7 +1,5 @@
 package january
-{	
-	import flash.utils.Dictionary;
-	
+{		
 	import january.snowflakes.*;
 	
 	import org.flixel.*;
@@ -59,7 +57,7 @@ package january
 		[Embed(source="../assets/audio/notes/A#4.mp3")]	public static var As4:Class;
 		[Embed(source="../assets/audio/notes/B4.mp3")]	public static var B4:Class;	
 		
-		public static var notes: Array = [C1,Cs1,D1,Ds1,E1,F1,Fs1,G1,Gs1,A1,As1,B1,C2,Cs2,D2,Ds2,E2,F2,Fs2,G2,Gs2,A2,As2,B2,C3,Cs3,D3,Ds3,E3,F3,Fs3,G3,Gs3,A3,As3,B3,C4,Cs4,D4,Ds4,E4,F4,Fs4,G4,Gs4,A4,As4,B4];
+		public static var notes:  Array = [C1,Cs1,D1,Ds1,E1,F1,Fs1,G1,Gs1,A1,As1,B1,C2,Cs2,D2,Ds2,E2,F2,Fs2,G2,Gs2,A2,As2,B2,C3,Cs3,D3,Ds3,E3,F3,Fs3,G3,Gs3,A3,As3,B3,C4,Cs4,D4,Ds4,E4,F4,Fs4,G4,Gs4,A4,As4,B4];
 		
 		public static var eMinor: Array = [E1,Fs1,G1,A1,B1,Cs2,D2,E2,Fs2,G2,A2,B2,Cs3,D3,E3,Fs3,G3,A3,B3,Cs4,D4,E4,Fs4,G4,A4,B4];
 		public static var gMajor: Array = [B1,D2,E2,Fs2,G2,A2,B2,D3,E3,Fs3,G3,A3,B3,D4,E4,Fs4,G4,A4];
@@ -93,6 +91,8 @@ package january
 				var functionName:String = "in" + keys[keyID];
 				var keyFunction:Function = Music[functionName];
 				keyFunction();
+				
+				PlayState.HUDkey.text = "Key: " + keys[keyID];
 			
 			// if this is the first note
 			if (previous == null)
@@ -101,7 +101,7 @@ package january
 				previous = _initial;
 			}
 			
-			if (Snowflake.pedalPointMode)
+			if (Snowflake.pedalPointMode == true)
 				pedalPoint();
 			
 		}
@@ -116,35 +116,60 @@ package january
 				_volume = Helpers.rand(0.1, 0.5);			
 						
 			FlxG.play(_randomNote, _volume, _pan);
-			FlxG.log("Pan: " + _pan);
+			PlayState.HUDnote.text = "Note: " + _randomNote;
 			
 			previous = _randomNote;
 		}
 		
-		public static function chord():void
+		public static function chord(isKeyFlake:Boolean):void
 		{			
 			var _chordTone1: Class;
 			var _chordTone2: Class;
 			var _chordTone3: Class;
+			var _chordChoice: String;
 			
 			if (keyID == 0) 		// E Minor
 			{
-				_chordTone1 = Helpers.pickFrom(E1,E3);
-				_chordTone2 = Helpers.pickFrom(G2,E2);
-				_chordTone3 = Helpers.pickFrom(B1,Cs2);
+				// Pick a Chord Type to Generate
+				_chordChoice = Helpers.pickFrom("i","v");
+				
+				if (_chordChoice == "i" || isKeyFlake == true)
+				{
+					_chordTone1 = Helpers.pickFrom(E1,E3);
+					_chordTone2 = Helpers.pickFrom(G2,E2);
+					_chordTone3 = Helpers.pickFrom(B1,Cs2);
+				}
+				else if (_chordChoice == "v")
+				{
+					_chordTone1 = Helpers.pickFrom(B1,B2);
+					_chordTone2 = Helpers.pickFrom(D3,Cs3);
+					_chordTone3 = Helpers.pickFrom(Fs2,Fs3);
+				}
 			}
 			else if (keyID == 1) 	// G Major
 			{
-				_chordTone1 = Helpers.pickFrom(G1,G2);
-				_chordTone2 = Helpers.pickFrom(G2,B2);
-				_chordTone3 = Helpers.pickFrom(D2,E2);
+				// Pick a Chord Type to Generate
+				_chordChoice = Helpers.pickFrom("I","iii");
+				
+				if (_chordChoice == "I" || isKeyFlake == true)
+				{
+					_chordTone1 = Helpers.pickFrom(G1,G2);
+					_chordTone2 = Helpers.pickFrom(G2,B2);
+					_chordTone3 = Helpers.pickFrom(D2,E2);
+				}
+				else if (_chordChoice == "iii")
+				{
+					_chordTone1 = Helpers.pickFrom(B1,B2);
+					_chordTone2 = Helpers.pickFrom(D3,D2);
+					_chordTone3 = Helpers.pickFrom(Fs2,Fs3);
+				}
 			}
-			
-			FlxG.log(_chordTone1 + _chordTone2 + _chordTone3);
-			
+						
 			FlxG.play(_chordTone1, 0.15, 0);
 			FlxG.play(_chordTone2, 0.15, 1);
 			FlxG.play(_chordTone3, 0.15,-1);
+			
+			PlayState.HUDevent.text = "Chord: " + _chordChoice;
 		}
 		
 		public static function octave():void
@@ -167,15 +192,11 @@ package january
 			var _pedalTone: Class;
 			
 			if (keyID == 0) 		// E Minor
-			{
 				_pedalTone = Helpers.pickFrom(E1,E2);
-			}
 			else if (keyID == 1) 	// G Major
-			{
 				_pedalTone = Helpers.pickFrom(G1,G2);
-			}
 			
-			FlxG.play(_pedalTone, Helpers.rand(0.05,0.15), _pan);
+			FlxG.play(_pedalTone, Helpers.rand(0.05, 0.15), Helpers.rand(-1, 1));
 		}
 		
 		private static function inEMinor():void
@@ -185,14 +206,14 @@ package january
 			else if (previous == G1)	generateNextInterval(E1,A1,B1,D2,Fs2,G2,G3);
 			else if (previous == A1)	generateNextInterval(Cs2,E2,A2,B2);
 			else if (previous == B1)	generateNextInterval(A1,Cs2,D2,Fs2,B2);
-		 	else if (previous == Cs2)	generateNextInterval(Fs1,D2,G2,B2,Cs3);
+		 	else if (previous == Cs2)	generateNextInterval(Fs1,D2,B2,Cs3);
 			else if (previous == D2)	generateNextInterval(Cs2,E2,Fs2);
 			else if (previous == E2) 	generateNextInterval(D2,Fs2,G2,B1,B2,B3,Cs3,E3,E1);
 			else if (previous == Fs2)	generateNextInterval(D2,E2,G2,A2,D3);
 			else if (previous == G2)	generateNextInterval(Fs2,A2,B1,D2,E2,B2,D3,E3,Fs3,A3,B3);
 			else if (previous == A2)	generateNextInterval(G2,B2,E3,D2);
 			else if (previous == B2)	generateNextInterval(A2,Cs3,Fs3,G2,E2,D2);
-			else if (previous == Cs3)	generateNextInterval(Fs2,D3,G3,B3,Cs4);
+			else if (previous == Cs3)	generateNextInterval(Fs2,D3,B3,Cs4);
 			else if (previous == D3)	generateNextInterval(Fs2,Fs3,A2,B2);
 			else if (previous == E3)	generateNextInterval(E2,G3,Fs3,D3,B3,E4);
 			else if (previous == Fs3)	generateNextInterval(D3,B2,A2,G3,A3,B3);

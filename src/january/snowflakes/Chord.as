@@ -3,8 +3,7 @@ package january.snowflakes
 	import january.*;
 	
 	public class Chord extends Snowflake
-	{
-		
+	{	
 		[Embed(source="../assets/art/flakes/chord.png")] private var sprite : Class;
 		
 		public function Chord()
@@ -12,12 +11,15 @@ package january.snowflakes
 			super();
 			
 			loadGraphic(sprite);
+			
+			_pointValue = 1;
 		}
 		
 		public override function onLick():void
 		{
-			Music.chord();
-			super.kill();
+			super.onLick();
+			
+			Music.chord(false);
 		}
 	}
 }

@@ -42,6 +42,33 @@ package january
 			}
 		}
 		
+		/**
+		 * Takes an array of weights, and returns a random index based on the weights
+		 */
+		public static function weightedChoice(weights:Array):int
+		{
+			// add weights
+			var weightsTotal:Number = 0;
+			
+			for( var i:int = 0; i < weights.length; i++ )
+				weightsTotal += weights[i];
+			
+			var rand:Number = Math.random() * weightsTotal;
+			
+			weightsTotal = 0;
+			
+			for (i = 0; i < weights.length; i++ )
+			{
+				weightsTotal += weights[i];
+				
+				if( rand < weightsTotal )
+					return i;
+			}
+			
+			// if random num is exactly = weightsTotal
+			return weights.length - 1;
+		}
+		
 	}
 	
 }

@@ -98,16 +98,6 @@ package january
 			if (x >= boundsRight) x = boundsRight;
 		}
 		
-		public function onCollision(SnowRef: Snowflake, PlayerRef: Player):void
-		{			
-			if (FlxG.keys.UP || FlxG.keys.W)
-			{
-				FlxG.score += 1;
-				SnowRef.onLick();
-			}		
-			
-		}
-		
 	}
 	
 }
