@@ -81,7 +81,7 @@ package january
 			_volume = noteVolume;
 			
 			// Convert X position to pan position.
-			_pan = 2 * (panX / FlxG.width) - 1;
+			_pan = 2 * ((panX - PlayState.camera.scroll.x) / FlxG.width) - 1;
 						
 			if (keyID == 0 || _initial == E1 || _initial == E2 || _initial == E3 || _initial == E4)
 				keyID = 0;

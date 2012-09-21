@@ -11,17 +11,13 @@ package january.snowflakes
 			super();
 			
 			makeGraphic(1, 1);
-
+			_pointValue = 0;
+			
 			noteVolume = Helpers.rand(0.1, 0.25);
 		}
 		
 		public override function onLick():void
-		{	
-			if (FlxG.score < 2 || PlayState.textOutput.storyOver == true)
-				_pointValue = 1;
-			else
-				_pointValue = 0;
-			
+		{							
 			super.onLick();			
 			
 			Music.generate(noteVolume, x);

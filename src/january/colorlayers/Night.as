@@ -15,7 +15,7 @@ package january.colorlayers
 		override public function onLick():void
 		{			
 			// What to show after the story is over.
-			if (PlayState.textOutput.storyOver == true)
+			if (Text.storyOver == true)
 				fade(0xFF948DA6, 45, "multiply");
 		}
 		

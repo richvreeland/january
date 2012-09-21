@@ -7,25 +7,34 @@ package january
 		
 		[Embed(source="../assets/art/player.png")] private var sprite:Class;
 		
-		private var boundsLeft : int;
-		private var boundsRight : int;
+		public var boundsLeft : int;
+		public var boundsRight : int;
+		
+		public var scrollLeft: int;
+		public var scrollRight: int;
+		
+		public var tongueBox: FlxSprite;
+		
+		protected var _tongueUp: Boolean;
 		
 		public function Player()
 		{
-			x = 25; y = 79;
+			x = PlayState.startingX + 25; y = 79;
 			
 			super(x, y);
 			loadGraphic(sprite, false, true, 16, 33);
 			maxVelocity.x = 25;
 			
-			// Focus bounding box on head for collision purposes.
-			width = 6;
-			height = 1;
-			offset.x = 6;
-			offset.y = 6;
+			width    = 8;
+			height   = 31;
+			offset.x = 3;
+			offset.y = 2;
+			
+			tongueBox = new FlxSprite().makeGraphic(8,1);
+			tongueBox.visible = false;
 			
 			// Set player's x position bounds
-			boundsLeft = 0;
+			boundsLeft = 10;
 			boundsRight = FlxG.width - frameWidth;
 			
 			// Add animations.
@@ -36,23 +45,41 @@ package january
 			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 6);
 		}
 		
+		public function onOverlap(SnowRef: Snowflake, PlayerRef: Player):void
+		{
+			var pressedUpKey:Boolean = FlxG.keys.UP || FlxG.keys.W;
+			if (!pressedUpKey)
+				SnowRef.onIncidental();
+		}
+		
+		public function get tongueUp():Boolean
+		{
+			return _tongueUp;
+		}
+		
 		override public function update():void
 		{			
 			//////////////
 			// MOVEMENT //
 			//////////////
 			
-			if (FlxG.keys.LEFT || FlxG.keys.A)
+			var pressedUpKey:Boolean = FlxG.keys.UP || FlxG.keys.W;
+			var pressedLeftKey:Boolean = FlxG.keys.LEFT || FlxG.keys.A;
+			var pressedRightKey:Boolean = FlxG.keys.RIGHT || FlxG.keys.D;
+			var releasedLeftRightKey:Boolean = FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D");
+			var releasedUpKey:Boolean = FlxG.keys.justReleased("UP") || FlxG.keys.justReleased("W");
+			
+			if (pressedLeftKey)
 			{	
 				facing = LEFT;
 				velocity.x = -maxVelocity.x;
 			}
-			else if (FlxG.keys.RIGHT || FlxG.keys.D)
+			else if (pressedRightKey)
 			{
 				facing = RIGHT;
 				velocity.x = maxVelocity.x;
 			}
-			else if ((FlxG.keys.justReleased("D") || FlxG.keys.justReleased("A")) || (FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("LEFT")))
+			else if (releasedLeftRightKey)
 				velocity.x = 0;
 			else
 				velocity.x = 0;
@@ -61,41 +88,99 @@ package january
 			// ANIMATION //
 			///////////////
 			
-			if (velocity.x != 0)
-			{
-				if (FlxG.keys.UP || FlxG.keys.W)
-					play("walkTongue");
-				else
-					play("walk");
-			}
-			else
-			{	
-				if (FlxG.keys.UP || FlxG.keys.W)
-				{
-					// Skip to frame to smooth out the transition.
-					if (FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D"))
-						frame = 2;
-					else if (frame != 2)
-						play("tongueUp");
-				}
-				else if (FlxG.keys.justReleased("UP") || FlxG.keys.justReleased("W"))
-				{
-					// Chain together two animations.
-					play("tongueDown");
-					if (finished) play("idle");
-				}
-				else if (FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D"))
-					play("idle");
-			}
+			if (velocity.x != 0)	
+			{				
+				if (pressedUpKey)					
+					play("walkTongue");					
+				else					
+					play("walk");				
+			}				
+			else				
+			{       				
+				if (pressedUpKey)					
+				{					
+					// Skip to frame to smooth out the transition.					
+					if (releasedLeftRightKey)						
+						frame = 2;						
+					else if (frame != 2)						
+						play("tongueUp");					
+				}					
+				else if (releasedUpKey)					
+				{					
+					// Chain together two animations.					
+					play("tongueDown");					
+					if (finished) play("idle");					
+				}					
+				else if (releasedLeftRightKey)					
+					play("idle");				
+			}			
+			
+			// TONGUE-TOGGLING CODE.
+//			if (velocity.x != 0) // if moving
+//			{
+//				if (_tongueUp == false && releasedUpDownKey == true)
+//				{
+//					play("walkTongue");
+//					_tongueUp = true;
+//				}	
+//				else if (_tongueUp == true && releasedUpDownKey == true)
+//				{
+//					play("walk");
+//					_tongueUp = false;
+//				}
+//				else if (_tongueUp == false && releasedUpDownKey == false)
+//					play("walk");
+//				else if (_tongueUp == true && releasedUpDownKey == false)
+//					play("walkTongue");
+//			}
+//			else // not moving
+//			{	
+//				if (_tongueUp == false && releasedUpDownKey == true)
+//				{
+//					play("tongueUp");	
+//					_tongueUp = true;
+//				}
+//				else if (_tongueUp == true && releasedUpDownKey == true)//(FlxG.keys.justReleased("UP") || FlxG.keys.justReleased("W"))
+//				{
+//					play("tongueDown");
+//					if (finished) play("idle");
+//					_tongueUp = false;
+//				}
+//				else if (_tongueUp == true && releasedUpDownKey == false && releasedLeftRightKey == true)
+//					frame = 2;
+//				else if (releasedLeftRightKey == true)
+//				{
+//					play("idle");
+//					_tongueUp = false;
+//				}	
+//			}
 			
 			super.update();
 			
-			/////////////////////////
-			// BOUNDARY COLLISIONS //
-			/////////////////////////
+			////////////////
+			// COLLISIONS //
+			////////////////
 			
-			if (x <= boundsLeft)  x = boundsLeft;
-			if (x >= boundsRight) x = boundsRight;
+			// Update scrolling boundaries.
+			scrollLeft	= PlayState.camera.scroll.x + boundsLeft;
+			scrollRight = PlayState.camera.scroll.x + boundsRight;
+		
+			if (x < scrollLeft)
+				x = scrollLeft;
+			else if (x > scrollRight)
+				x = scrollRight;
+			
+			if (facing == RIGHT)
+			{
+				tongueBox.x = this.x + 1;
+				tongueBox.y = this.y + 4;
+			}	
+			else // facing == LEFT
+			{
+				tongueBox.x = this.x + 1;
+				tongueBox.y = this.y + 4;
+			}
+			
 		}
 		
 	}

@@ -156,6 +156,13 @@ package org.flixel
 		protected var _matrix:Matrix;
 		
 		/**
+		 * If the Sprite is beeing rendered in simple mode.
+		 */
+		public function get simpleRender():Boolean { 
+			return ((angle == 0) || (_bakedRotation > 0)) && (scale.x == 1) && (scale.y == 1) && (blend == null)
+		}
+		
+		/**
 		 * Creates a white 8x8 square <code>FlxSprite</code> at the specified position.
 		 * Optionally can load a simple, one-frame graphic instead.
 		 * 

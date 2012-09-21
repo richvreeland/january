@@ -11,7 +11,7 @@ package january.colorlayers
 			super();
 			
 			_desiredAlpha = 0;
-			flash(0xFF000000,15);
+			flash(0xFF000000,10);
 		}
 		
 	}

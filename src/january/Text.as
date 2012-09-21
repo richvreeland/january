@@ -12,10 +12,10 @@ package january
 	        private var _lifespan: Number;
 	
 			/** The gutter size, used to keep text off screen edges. */
-			private var _gutter: Number = 10;
+			private var _gutter: Number = 20;
 			
 			/** Whether the story is over or not. */
-		   	public var storyOver: Boolean;
+		   	public static var storyOver: Boolean;
 		
 			/** The new score, once the story is over. Takes over for FlxG.score */
 			public static var newScore: Number = 0;
@@ -61,7 +61,7 @@ package january
 				if (storyOver == false)
 				{
 					// Ignore Small flakes, otherwise move story forward!
-					if (FlxG.score > 2 && flakeType == "Small")
+					if (flakeType == "Small")
 						null;
 					else
 						_text = PlayState.strings[FlxG.score-1];
@@ -79,7 +79,6 @@ package january
 						_text = newScore.toString() + ".";
 				}
 				
-				
 				//_text = "This is a longer test.";
 				
 				// Show the new text feedback.
@@ -96,16 +95,16 @@ package january
 						x -= realWidth + 4;
 						
 						// Check Bounds on Left Side
-						if (PlayState.player.x - realWidth < _gutter)
-							x = _gutter;	
+						if (PlayState.player.x - realWidth < _gutter + PlayState.camera.scroll.x)
+							x = PlayState.camera.scroll.x + _gutter;	
 					}
 					else // facing == RIGHT
 					{
 						x -= 4;
 						
 						// Check Bounds on Right Side
-						if (PlayState.player.x + realWidth > FlxG.width - _gutter)
-							x = FlxG.width - _gutter - realWidth;
+						if (PlayState.player.x + realWidth > PlayState.camera.scroll.x + FlxG.width - _gutter)
+							x = PlayState.camera.scroll.x + FlxG.width - _gutter - realWidth;
 					}
 					
 				}

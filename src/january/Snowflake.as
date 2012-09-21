@@ -1,7 +1,5 @@
 package january
 {
-	import com.*;
-	
 	import flash.utils.*;
 	
 	import january.snowflakes.*;
@@ -39,9 +37,15 @@ package january
 		
 		public function spawn():void
 		{
-			headway = (-windX * 8);
+			headway = 8 * PlayState.cameraRails.velocity.x;
 			
-			x = Math.random()*(FlxG.width + headway);
+			var screenMidpoint:int = PlayState.camera.scroll.x + (FlxG.width/2);
+			if (FlxG.score == 0)
+				x = screenMidpoint;
+			else
+				x = Helpers.rand(PlayState.camera.scroll.x, PlayState.camera.scroll.x + FlxG.width + headway);
+			
+			
 			y = 0;
 				
 			// Set _type to class name ie. "Small"
@@ -59,8 +63,8 @@ package january
 			
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var _flake: String;
-			if (FlxG.score == 0 && PlayState.textOutput.storyOver == false)
-				_flake = "Small";
+			if (FlxG.score == 0)
+				_flake = "Large";
 			else
 			 	_flake = _flakes[Helpers.weightedChoice(_weights)];
 			
@@ -81,10 +85,10 @@ package january
 		{
 			//////////////
 			// MOVEMENT //
-			//////////////
+			//////////////			
 			
 			velocity.y = 10 + windY;
-			velocity.x = (Math.sin(y / 5) * 5) - headway + windX;
+			velocity.x = (Math.cos(y / 5) * 5) + windX;
 			
 			super.update();
 			
@@ -100,6 +104,13 @@ package january
 		{						
 			FlxG.score += _pointValue;
 			
+			super.kill();
+		}
+		
+		/** When snowflakes hit the player but he doesn't lick them. */
+		public function onIncidental():void
+		{
+			Music.generate(Helpers.rand(0.01, 0.05), x);
 			super.kill();
 		}
 	}

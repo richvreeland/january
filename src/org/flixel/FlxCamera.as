@@ -6,7 +6,7 @@ package org.flixel
 	import flash.geom.ColorTransform;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-
+	
 	/**
 	 * The camera class is used to display the game's visuals in the Flash player.
 	 * By default one camera is created automatically, that is the same size as the Flash player.
@@ -32,6 +32,10 @@ package org.flixel
 		 * Camera "follow" style preset: camera deadzone is a small square around the focus object.
 		 */
 		static public const STYLE_TOPDOWN_TIGHT:uint = 3;
+		/**
+		 * Camera "follow" style preset: camera will move screenwise.
+		 */
+		static public const STYLE_SCREEN_BY_SCREEN:uint = 4;
 		
 		/**
 		 * Camera "shake" effect preset: shake camera on both the X and Y axes.
@@ -70,6 +74,10 @@ package org.flixel
 		 * How tall the camera display is, in game pixels.
 		 */
 		public var height:uint;
+		/**
+		 * Tells the camera to use this following style.
+		 */
+		public var style:uint;
 		/**
 		 * Tells the camera to follow this <code>FlxObject</code> object around.
 		 */
@@ -228,7 +236,7 @@ package org.flixel
 			buffer = screen.pixels;
 			bgColor = FlxG.bgColor;
 			_color = 0xffffff;
-
+			
 			_flashBitmap = new Bitmap(buffer);
 			_flashBitmap.x = -width*0.5;
 			_flashBitmap.y = -height*0.5;
@@ -297,22 +305,48 @@ package org.flixel
 				else
 				{
 					var edge:Number;
-					var targetX:Number = target.x + ((target.x > 0)?0.0000001:-0.0000001);
-					var targetY:Number = target.y + ((target.y > 0)?0.0000001:-0.0000001);
+					var targetX:Number;
+					var targetY:Number;
 					
-					edge = targetX - deadzone.x;
-					if(scroll.x > edge)
-						scroll.x = edge;
-					edge = targetX + target.width - deadzone.x - deadzone.width;
-					if(scroll.x < edge)
-						scroll.x = edge;
+					if (FlxSprite(target).simpleRender) {
+						targetX = FlxU.ceil(target.x + ((target.x > 0)?0.0000001:-0.0000001));
+						targetY = FlxU.ceil(target.y + ((target.y > 0)?0.0000001:-0.0000001));
+					}
+					else{
+						targetX = target.x + ((target.x > 0)?0.0000001:-0.0000001);
+						targetY = target.y + ((target.y > 0)?0.0000001: -0.0000001);
+					}
 					
-					edge = targetY - deadzone.y;
-					if(scroll.y > edge)
-						scroll.y = edge;
-					edge = targetY + target.height - deadzone.y - deadzone.height;
-					if(scroll.y < edge)
-						scroll.y = edge;
+					if (style == STYLE_SCREEN_BY_SCREEN) {
+						if(targetX > scroll.x + width){
+							scroll.x += width;
+						}
+						else if(targetX < scroll.x){
+							scroll.x -= width;
+						}
+						
+						if(targetY > scroll.y + height){
+							scroll.y += height;
+						}
+						else if(targetY < scroll.y){
+							scroll.y -= height;
+						}
+					}
+					else{
+						edge = targetX - deadzone.x;
+						if(scroll.x > edge)
+							scroll.x = edge;
+						edge = targetX + target.width - deadzone.x - deadzone.width;
+						if(scroll.x < edge)
+							scroll.x = edge;
+						
+						edge = targetY - deadzone.y;
+						if(scroll.y > edge)
+							scroll.y = edge;
+						edge = targetY + target.height - deadzone.y - deadzone.height;
+						if(scroll.y < edge)
+							scroll.y = edge;
+					}
 				}
 			}
 			
@@ -377,13 +411,17 @@ package org.flixel
 		 */
 		public function follow(Target:FlxObject, Style:uint=STYLE_LOCKON):void
 		{
+			style = Style;
 			target = Target;
 			var helper:Number;
+			var w:Number = 0;
+			var h:Number = 0;
+			
 			switch(Style)
 			{
 				case STYLE_PLATFORMER:
-					var w:Number = width/8;
-					var h:Number = height/3;
+					w = width/8;
+					h = height/3;
 					deadzone = new FlxRect((width-w)/2,(height-h)/2 - h*0.25,w,h);
 					break;
 				case STYLE_TOPDOWN:
@@ -395,6 +433,15 @@ package org.flixel
 					deadzone = new FlxRect((width-helper)/2,(height-helper)/2,helper,helper);
 					break;
 				case STYLE_LOCKON:
+					if (target != null) {	
+						w = target.width;
+						h = target.height;
+					}
+					deadzone = new FlxRect((width-w)/2,(height-h)/2 - h * 0.25,w,h);
+					break;
+				case STYLE_SCREEN_BY_SCREEN:
+					deadzone = new FlxRect(0, 0, width, height);
+					break;	
 				default:
 					deadzone = null;
 					break;
