@@ -6,7 +6,7 @@ package january
 	
 		public class Text extends FlxText
 		{
-	        [Embed(source="../assets/frucade.ttf", fontFamily="frucade", embedAsCFF="false")] public var customFont:String;
+	        [Embed(source="../assets/frucade.ttf", fontFamily="frucade", embedAsCFF="false")] public static var font:String;
 	
 	        /** The number of seconds to hold the text before it starts to fade. */
 	        private var _lifespan: Number;
@@ -30,7 +30,7 @@ package january
 	
 				velocity.y = -8;
 	
-	            setFormat("frucade");
+	            font = "frucade";
 	            alpha = 0;
 	        }
 	
@@ -69,17 +69,13 @@ package january
 					if (FlxG.score == PlayState.strings.length + 1)
 						storyOver = true;
 				}
-				
-				// What to show after the story is over.
-				if (storyOver == true)
+				else // What to show after the story is over.
 				{					
-					newScore = FlxG.score - PlayState.strings.length;
+					newScore = FlxG.score - PlayState.strings.length + 1;
 					
 					if (newScore != 0 && newScore % 10 == 0)
 						_text = newScore.toString() + ".";
 				}
-				
-				//_text = "This is a longer test.";
 				
 				// Show the new text feedback.
 				if (_text != "")

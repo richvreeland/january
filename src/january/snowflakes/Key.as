@@ -15,26 +15,25 @@ package january.snowflakes
 			loadGraphic(sprite);
 			
 			_pointValue = 1;
-			noteVolume = 0.5;
 		}
 		
 		public override function onLick():void
 		{			
 			super.onLick();
 			
-			var _newKey:int = Helpers.randInt(0, Music.keys.length - 1);
+			var newKey:int = Helpers.randInt(0, keysLength - 1);
 			
 			// make sure that onLick, the Key flake always changes the key!
-			if (_newKey == Music.keyID)
+			if (newKey == keyIndex)
 			{
-				Music.keyID = _newKey + 1;
-				if (Music.keyID > Music.keys.length - 1)
-					Music.keyID -= 2;
+				keyIndex = newKey + 1;
+				if (keyIndex > keysLength - 1)
+					keyIndex -= 2;
 			}
 			else
-				Music.keyID = _newKey;
+				keyIndex = newKey;
 			
-			Music.chord(true);
+			playChord(true);
 		}
 		
 	}

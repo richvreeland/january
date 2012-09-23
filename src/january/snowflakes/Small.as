@@ -13,14 +13,14 @@ package january.snowflakes
 			makeGraphic(1, 1);
 			_pointValue = 0;
 			
-			noteVolume = Helpers.rand(0.1, 0.25);
+			_volume = Helpers.rand(0.1, 0.25);
 		}
 		
 		public override function onLick():void
 		{							
 			super.onLick();			
 			
-			Music.generate(noteVolume, x);
+			playNote();
 		}
 
 	}

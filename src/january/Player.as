@@ -3,9 +3,16 @@ package january
 	import org.flixel.*;
 	
 	public class Player extends FlxSprite
-	{
+	{	
+		[Embed(source="../assets/art/player.png")] private static var sprite:Class;
 		
-		[Embed(source="../assets/art/player.png")] private var sprite:Class;
+		[Embed(source="../assets/audio/footsteps/01.mp3")]	private static var step01:Class;
+		[Embed(source="../assets/audio/footsteps/02.mp3")]	private static var step02:Class;
+		[Embed(source="../assets/audio/footsteps/03.mp3")]	private static var step03:Class;
+		[Embed(source="../assets/audio/footsteps/04.mp3")]	private static var step04:Class;
+		
+		private static var footsteps: Array = [step01, step02, step03, step04];
+		private static var footstepsLength: uint = footsteps.length;
 		
 		public var boundsLeft : int;
 		public var boundsRight : int;
@@ -25,16 +32,16 @@ package january
 			loadGraphic(sprite, false, true, 16, 33);
 			maxVelocity.x = 25;
 			
-			width    = 8;
+			width    = 7;
 			height   = 31;
-			offset.x = 3;
+			offset.x = 4;
 			offset.y = 2;
 			
 			tongueBox = new FlxSprite().makeGraphic(8,1);
 			tongueBox.visible = false;
 			
 			// Set player's x position bounds
-			boundsLeft = 10;
+			boundsLeft = 2;
 			boundsRight = FlxG.width - frameWidth;
 			
 			// Add animations.
@@ -43,6 +50,7 @@ package january
 			addAnimation("tongueDown", [1, 0], 12, false);
 			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 6);
 			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 6);
+			addAnimationCallback(footsteps);
 		}
 		
 		public function onOverlap(SnowRef: Snowflake, PlayerRef: Player):void
@@ -57,8 +65,18 @@ package january
 			return _tongueUp;
 		}
 		
+		protected function footsteps(Animation:String, FrameNumber:uint, FrameIndex:uint):void
+		{		
+			var randomStep: Class = Helpers.pickFrom(step01, step02, step03, step04);
+			var volume: Number = Helpers.rand(0.1, 0.15);
+			
+			if (FrameIndex == 4 || FrameIndex == 8 || FrameIndex == 11 || FrameIndex == 21)
+				FlxG.play(randomStep, volume, 0);
+			
+		}
+		
 		override public function update():void
-		{			
+		{						
 			//////////////
 			// MOVEMENT //
 			//////////////
@@ -69,20 +87,24 @@ package january
 			var releasedLeftRightKey:Boolean = FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D");
 			var releasedUpKey:Boolean = FlxG.keys.justReleased("UP") || FlxG.keys.justReleased("W");
 			
+			acceleration.x = 0;
+			
 			if (pressedLeftKey)
 			{	
 				facing = LEFT;
-				velocity.x = -maxVelocity.x;
+				offset.x = 5;
+				drag.x = 300;
+				acceleration.x -= drag.x;
 			}
 			else if (pressedRightKey)
 			{
 				facing = RIGHT;
-				velocity.x = maxVelocity.x;
+				offset.x = 4;
+				drag.x = 300;
+				acceleration.x += drag.x;
 			}
 			else if (releasedLeftRightKey)
-				velocity.x = 0;
-			else
-				velocity.x = 0;
+				drag.x = 100;
 			
 			///////////////
 			// ANIMATION //
@@ -112,7 +134,9 @@ package january
 					if (finished) play("idle");					
 				}					
 				else if (releasedLeftRightKey)					
-					play("idle");				
+					play("idle");
+				else
+					play("idle");
 			}			
 			
 			// TONGUE-TOGGLING CODE.

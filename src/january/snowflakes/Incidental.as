@@ -2,11 +2,11 @@ package january.snowflakes
 {
 	import january.*;
 	
-	public class Pedal extends Snowflake
+	public class Incidental extends Snowflake
 	{	
-		[Embed(source="../assets/art/flakes/pedal.png")] private var sprite: Class;
+		[Embed(source="../assets/art/flakes/incidental.png")] private var sprite: Class;
 		
-		public function Pedal()
+		public function Incidental()
 		{
 			super();
 			
@@ -20,7 +20,7 @@ package january.snowflakes
 		{			
 			super.onLick();
 			
-			pedalPointMode = !pedalPointMode;
+			incidentalMode = !incidentalMode;
 			playNote();
 		}
 		

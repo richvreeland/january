@@ -448,7 +448,7 @@ package org.flixel
 					_accumulator += elapsedMS;
 					if(_accumulator > _maxAccumulation)
 						_accumulator = _maxAccumulation;
-					while(_accumulator >= _step)
+					while(_accumulator > _step)		// Changed >= to >, Based on krix's fix from flixel forums
 					{
 						step();
 						_accumulator = _accumulator - _step; 

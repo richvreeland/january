@@ -1,7 +1,6 @@
 package january.colorlayers
 {
 	import january.*;
-	
 	import org.flixel.*;
 	
 	public class Haze extends ColorLayer
@@ -15,12 +14,12 @@ package january.colorlayers
 		
 		override public function onLick():void
 		{				
-			// Day/Night Cycle
-			if (FlxG.score == 2)
+			// Start Haze Effect when score is 2.
+			if ( _layerOn == false && FlxG.score == 2)
+			{
+				fade(0xFF999999, 60);
 				_layerOn = true;
-			
-			if (_layerOn == true)
-				fade(0xFF999999, 30);
+			}
 		}
 			
 	}

@@ -1,6 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
+	import org.flixel.*;
 	
 	public class Large extends Snowflake
 	{
@@ -11,14 +12,17 @@ package january.snowflakes
 			makeGraphic(2, 2);
 			
 			_pointValue = 1;
-			noteVolume = Helpers.rand(0.25, 0.5);
+			_volume = Helpers.rand(0.25, 0.4);
 		}
 
 		public override function onLick():void
 		{
+			if (FlxG.score == 0)
+				_volume = 0.4;
+			
 			super.onLick();
 			
-			Music.generate(noteVolume, x);
+			playNote();
 		}
 	}
 }

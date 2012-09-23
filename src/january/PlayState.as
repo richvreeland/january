@@ -8,49 +8,52 @@ package january
 	
 	public class PlayState extends FlxState
 	{
-		[Embed(source = "../assets/maps/level.txt", mimeType = "application/octet-stream")] protected var _levelMap: Class;
-		[Embed(source = "../assets/maps/trees.txt", mimeType = "application/octet-stream")] protected var _treeMap : Class;
-		[Embed(source = "../assets/maps/sky.txt", mimeType = "application/octet-stream")] 	protected var _skyMap  : Class;
+		//MAPS
+		[Embed(source = "../assets/maps/level.txt", mimeType = "application/octet-stream")] private static var _levelMap: Class;
+		[Embed(source = "../assets/maps/trees.txt", mimeType = "application/octet-stream")] private static var _treeMap : Class;
+		[Embed(source = "../assets/maps/sky.txt", mimeType = "application/octet-stream")] 	private static var _skyMap  : Class;
 		
-		[Embed(source = "../assets/art/ground.png")] 	protected var _groundImg: Class;
-		[Embed(source = "../assets/art/trees.png")] 	protected var _treeImg	: Class;
-		[Embed(source = "../assets/art/sky.png")] 		protected var _skyImg	: Class;
-		[Embed(source = "../assets/art/cabin.png")]		protected var _houseImg : Class;
+		//SPRITES
+		[Embed(source = "../assets/art/ground.png")] 	private static var _groundImg: Class;
+		[Embed(source = "../assets/art/trees.png")] 	private static var _treeImg	: Class;
+		[Embed(source = "../assets/art/sky.png")] 		private static var _skyImg	: Class;
+		[Embed(source = "../assets/art/cabin.png")]		private static var _houseImg : Class;
 		
 		//SOUNDS
-		[Embed(source = "../assets/audio/ambience.swf", symbol = "snow_01.aif")] protected var _ambience: Class;
-		[Embed(source = "../assets/audio/door_open.mp3")] 						 protected var _doorOpen: Class;
-		[Embed(source = "../assets/audio/door_close.mp3")] 						 protected var _doorClose:Class;
+		[Embed(source = "../assets/audio/ambience.swf", symbol = "snow_01.aif")] private static var _ambience: Class;
+		[Embed(source = "../assets/audio/door_open.mp3")] 						 private static var _doorOpen: Class;
+		[Embed(source = "../assets/audio/door_close.mp3")] 						 private static var _doorClose:Class;
 		
 		public static var HUDkey  : FlxText;
 		public static var HUDnote : FlxText;
 		public static var HUDevent: FlxText;
 		
-		public static var dusk:  Dusk;
-		public static var haze:  Haze;
-		public static var night: Night;
-		public static var black: Black;
+		private static var dusk:  Dusk;
+		private static var haze:  Haze;
+		private static var night: Night;
+		private static var black: Black;
 		
 		public static var storyData:  StoryData;
 		public static var strings: 	  Array;
 		public static var textOutput: Text;
 		
-		protected var _ground: FlxTilemap;
-		protected var _trees : FlxTilemap;
-		protected var _sky 	 : FlxSprite;
+		private static var _ground: FlxTilemap;
+		private static var _trees : FlxTilemap;
+		private static var _sky   : FlxSprite;
 		
-		public static var houseLeft : FlxSprite;
-		public static var houseRight: FlxSprite;
+		private static var houseLeft : FlxSprite;
+		private static var houseRight: FlxSprite;
 		
 		public static var player: Player;
+		public static var reflection: Reflection;
 		public static var snow 	: FlxGroup;
 		
 		public static var camera: FlxCamera;
 		public static var cameraRails: FlxSprite;
-		public static var startingX: Number = 420;
+		public static var startingX: Number = 420; //2400 for End
 		
-		protected var _spawnTimer: FlxDelay;
-		protected var _resetTime: int;
+		private static var _spawnTimer: FlxDelay;
+		private static var _resetTime : int;
 		
 		override public function create():void
 		{					
@@ -98,6 +101,8 @@ package january
 				player = new Player();
 			add(player);
 			add(player.tongueBox);
+				reflection = new Reflection();
+			add(reflection);
 			
 			//	Build Houses
 				houseLeft = new FlxSprite(50, 16);
@@ -128,11 +133,12 @@ package january
 			// Create Camera and Camera Rails (Camera Follows Rails Object)										
 				cameraRails = new FlxSprite(startingX + FlxG.width + 1, FlxG.height - 1);
 				cameraRails.makeGraphic(1,1,0xFFFF0000);
-				//cameraRails.alpha = 0;
+				cameraRails.maxVelocity.x = 10;
+				cameraRails.visible = false;
 			add(cameraRails);
 			
 				camera = new FlxCamera(0, 0, FlxG.width + 1, FlxG.height);
-				camera.setBounds(startingX, 0, _ground.width, FlxG.height);
+				camera.setBounds(420, 0, _ground.width - 420, FlxG.height);
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
 				camera.target = cameraRails;
 			add(camera);
@@ -151,7 +157,9 @@ package january
 		}
 		
 		override public function update():void
-		{																
+		{																												
+			//FlxG.log("Snowflakes: " + snow.length);
+			
 			// Spawn snowflakes when timer expires.
 			_spawnTimer.callback =
 				function():void
@@ -160,10 +168,9 @@ package january
 						_spawnTimer.reset(12000);
 					else
 					{
-						if (_resetTime < 25)
-							_resetTime = 25;
+						if (_resetTime < 50)
+							_resetTime = 50;
 						
-						FlxG.log(_resetTime);
 						_spawnTimer.reset(_resetTime);						
 					}
 					
@@ -183,31 +190,33 @@ package january
 			FlxG.overlap(snow, player, player.onOverlap);
 			
 			// Camera Logic
-			if (camera.scroll.x >= _ground.width - FlxG.width)
+			if (player.x <= camera.scroll.x + 25)
 			{
-				cameraRails.acceleration.x = -5;
-				if (cameraRails.velocity.x <= 0)
-					cameraRails.velocity.x = 0;
-			}
-				
-			else if (player.x <= camera.scroll.x + 25)
-			{
-				cameraRails.drag.x = 5;
+				cameraRails.acceleration.x = 0;
+				cameraRails.drag.x = 1;
 				if (cameraRails.velocity.x <= 0)
 				{
 					cameraRails.velocity.x = 0;
 					cameraRails.drag.x = 0;
 				}
 			}
+			else if (camera.scroll.x > _ground.width - FlxG.width - 25)
+			{
+				cameraRails.x -= (cameraRails.x - _ground.width)/100;
+				cameraRails.velocity.x *= -2;
+				if (cameraRails.velocity.x <= 0)
+					cameraRails.velocity.x = 0;
+			}
 			else if (FlxG.score > 0)
 			{
 				cameraRails.acceleration.x = 10;	
 				if (cameraRails.velocity.x >= 10)
 				{
-					cameraRails.velocity.x = 10;
+					cameraRails.velocity.x = cameraRails.maxVelocity.x;
 					cameraRails.acceleration.x = 0;
 				}					
 			}
+			
 		}
 		
 		/**
@@ -236,21 +245,21 @@ package january
 		public function addHUD() : void
 		{				
 			// Add Last Note Text
-			HUDnote = new FlxText(10, 8, 256, "Note: ");
-			HUDnote.alignment = "left";
+			HUDnote = new FlxText(6, -2, 256, "Note: ");
 			HUDnote.scrollFactor.x = 0;
+			HUDnote.font = "frucade";
 			add(HUDnote);
 			
 			// Add Event Text
-			HUDevent = new FlxText(125, 8, 256, "Event: ");
-			HUDevent.alignment = "left";
+			HUDevent = new FlxText(2, 8, 256, "Event: ");
 			HUDevent.scrollFactor.x = 0;
+			HUDevent.font = "frucade";
 			add(HUDevent);
 			
 			// Add Key Text
-			HUDkey = new FlxText(225, 8, 256, "Key: ");
-			HUDkey.alignment = "left";
+			HUDkey = new FlxText(11, 18, 256, "Key: ");
 			HUDkey.scrollFactor.x = 0;
+			HUDkey.font = "frucade";
 			add(HUDkey);
 			
 			// Hide HUD by default.

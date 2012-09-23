@@ -40,7 +40,7 @@ package january
 		 * @param Duration		Duration of the fade effect.
 		 * @param Blend			Set a blend mode, eg. 'multiply'
 		 */		
-		public function fade (Color : uint, Duration : Number = 1, Blend : String = null) : void
+		final protected function fade (Color : uint, Duration : Number = 1, Blend : String = null) : void
 		{
 			fill(Color);
 			_delay = Duration;
@@ -55,7 +55,7 @@ package january
 		 * @param Duration		Duration of the flash effect.
 		 * @param Blend			Set a blend mode, eg. 'multiply'
 		 */	
-		public function flash ( Color : uint, Duration : Number = 1, Blend : String = null) : void
+		final protected function flash ( Color : uint, Duration : Number = 1, Blend : String = null) : void
 		{
 			fill(Color);
 			_delay = Duration;

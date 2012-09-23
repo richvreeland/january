@@ -14,15 +14,15 @@ package january.snowflakes
 			loadGraphic(sprite);
 			
 			_pointValue = 1;
-			noteVolume = Helpers.rand(0.1, 0.25);
+			_volume = Helpers.rand(0.1, 0.25);
 		}
 		
 		public override function onLick():void
 		{
 			super.onLick();
 			
-			Music.generate(noteVolume, x);	
-			Music.octave();				
+			playNote();	
+			playOctave();				
 		}
 	}
 }
