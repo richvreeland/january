@@ -110,7 +110,7 @@ package january
 		protected static var windY : Number = 0;
 		
 		/** Used to spawn flakes in front of screen, to offset camera movement. */
-		protected static var headway : Number = 5;
+		protected static var headway : Number = FlxG.width;
 		
 		// List of classes for getDefinitionByName() to use
 		Chord; Large; Octave; Small; Pedal; Incidental; Key;
@@ -131,7 +131,7 @@ package january
 		{				
 			// Snowflake spawning probabilities
 			var flakes		: Array = ["Small", "Large", "Octave", "Pedal", "Incidental", "Chord", "Key"];
-			var weights		: Array = [ 83    ,  10    ,  3      ,  2     ,  2			,  1.5   ,  0.5 ];
+			var weights		: Array = [ 75    ,  15    ,  4      ,  2     ,  2			,  1.5   ,  0.5 ];
 			
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var flakeID: String;
@@ -149,14 +149,15 @@ package january
 		
 		/** Spawns snowflakes. */
 		final private function spawn(flakeType: String):void
-		{
-			headway = 8 * PlayState.cameraRails.velocity.x;
-			
-			var screenMidpoint:int = PlayState.camera.scroll.x + (FlxG.width/2);
+		{						
+			var screenMidpoint:Number = PlayState.camera.scroll.x + (FlxG.width/2);
 			if (FlxG.score > 0)
-				x = Helpers.rand(PlayState.camera.scroll.x, PlayState.camera.scroll.x + FlxG.width + headway);
+				x = Helpers.randInt(PlayState.camera.scroll.x - headway, PlayState.camera.scroll.x + FlxG.width + headway);
 			else
 				x = screenMidpoint;
+			
+			if (x < FlxG.worldBounds.x || x > FlxG.worldBounds.width)
+				kill();
 
 			y = 0;
 			
@@ -164,8 +165,6 @@ package january
 			type = flakeType;
 			
 			exists = true;
-			
-			FlxG.log("Snowflake X: " + x);
 		}
 		
 		override public function update():void
@@ -174,8 +173,8 @@ package january
 			// MOVEMENT //
 			//////////////			
 			
-			velocity.y = 10 + windY;
-			velocity.x = (Math.cos(y / 5) * 5) + windX;
+			velocity.y = 10;// + windY;
+			velocity.x = (Math.cos(y / 5) * 5);// + windX;
 			
 			super.update();
 			
@@ -183,7 +182,7 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (y > FlxG.height || x < (PlayState.camera.scroll.x - width))
+			if (y > FlxG.height || x < PlayState.player.x - headway || x > PlayState.player.x + headway)
 				kill();			
 		}
 		

@@ -10,8 +10,10 @@ package january.colorlayers
 		{
 			super();
 			
-			_desiredAlpha = 0;
-			flash(0xFF000000,10);
+			_fillColor = 0xFF000000;
+			
+			alpha = 1;
+			alphaDown(5, 0);
 		}
 		
 	}

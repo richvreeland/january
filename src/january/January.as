@@ -10,7 +10,7 @@ package january
 		public function January()
 		{
 			// 2.66 : 1
-			super(320, 120, PlayState, 3, 60, 60);
+			super(320, 120, PlayState, 3);
 			
 			// Force the debugger
 			forceDebugger = true;

@@ -9,7 +9,8 @@ package january.colorlayers
 		{
 			super();
 			
-			_desiredAlpha = 1;
+			_fillColor = 0xFFA799A3;
+			blend = "multiply";
 		}
 		
 		override public function onLick():void
@@ -17,7 +18,7 @@ package january.colorlayers
 			// What to show after the story is over.
 			if (_layerOn == false && Text.newScore == 50)
 			{				
-				fade(0xFFA799A3, 60, "multiply");
+				alphaUp(60, 1);
 				_layerOn == true;
 			}
 		}

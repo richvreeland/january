@@ -9,7 +9,7 @@ package january.colorlayers
 		{
 			super();
 			
-			_desiredAlpha = 0.24;
+			_fillColor = 0xFF999999;
 		}
 		
 		override public function onLick():void
@@ -17,7 +17,7 @@ package january.colorlayers
 			// Start Haze Effect when score is 2.
 			if ( _layerOn == false && FlxG.score == 2)
 			{
-				fade(0xFF999999, 60);
+				alphaUp(60, 0.24);
 				_layerOn = true;
 			}
 		}

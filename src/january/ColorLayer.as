@@ -9,7 +9,7 @@ package january
 	public class ColorLayer extends FlxSprite
 	{
 		/** The duration of the given effect. */
-		protected var _delay:Number;
+		protected var _duration:Number;
 		
 		/** The desired alpha value when the effect is done, on a scale of 0 - 1. */
 		protected var _desiredAlpha:Number;
@@ -17,13 +17,23 @@ package january
 		/** Whether the instance of ColorLayer is on or not. */
 		protected var _layerOn:Boolean;
 		
+		protected var _fillColor:uint;
+		
+		public var start:Boolean;
+		
+		protected var _callbackDelay:Number = 0;
+		protected var _callbackTimer:Number = 0;
+		
+		protected var _fadeOnComplete:Function;
+		protected var _flashOnComplete:Function;
+		
 		/**
 		 * Create a new ColorLayer and set it to fill the screen, but hide it.
 		 */
 		public function ColorLayer():void
 		{
 			super();
-			makeGraphic(FlxG.width, FlxG.height, 0xFFFFFF, true);
+			makeGraphic(FlxG.width + 1, FlxG.height, 0xFFFFFFFF, true);
 			scrollFactor.x = scrollFactor.y = 0;
 			alpha = 0;
 			exists = false;
@@ -40,11 +50,14 @@ package january
 		 * @param Duration		Duration of the fade effect.
 		 * @param Blend			Set a blend mode, eg. 'multiply'
 		 */		
-		final protected function fade (Color : uint, Duration : Number = 1, Blend : String = null) : void
+		final public function alphaUp (Duration: Number = 1, DesiredAlpha: Number = 1, OnComplete: Function = null, CallbackDelay: Number = 0): void
 		{
-			fill(Color);
-			_delay = Duration;
-			blend = Blend;
+			fill(_fillColor);
+			_duration = Duration;
+			_desiredAlpha = DesiredAlpha;
+			_fadeOnComplete = OnComplete;
+			_callbackDelay = CallbackDelay;
+		
 			exists = true;
 		}
 		
@@ -55,12 +68,14 @@ package january
 		 * @param Duration		Duration of the flash effect.
 		 * @param Blend			Set a blend mode, eg. 'multiply'
 		 */	
-		final protected function flash ( Color : uint, Duration : Number = 1, Blend : String = null) : void
+		final public function alphaDown (Duration: Number = 1, DesiredAlpha: Number = 0, OnComplete: Function = null, CallbackDelay: Number = 0): void
 		{
-			fill(Color);
-			_delay = Duration;
-			blend = Blend;
-			alpha = 1;
+			fill(_fillColor);
+			_duration = Duration;
+			_desiredAlpha = DesiredAlpha;
+			_flashOnComplete = OnComplete;
+			_callbackDelay = CallbackDelay;
+
 			exists = true;
 		}
 		
@@ -68,20 +83,23 @@ package january
 		 * Check for alpha value. If it's reach it's desired result, stop the effect. 
 		 */
 		override public function update():void
-		{
-			if (_desiredAlpha == 0)
-			{
-				alpha -= FlxG.elapsed/_delay;	
-				
-				if (alpha <= _desiredAlpha)
-					alpha = _desiredAlpha;
-			}
+		{			
+			if (alpha > _desiredAlpha)
+				alpha -= FlxG.elapsed/_duration;
+			else if (alpha < _desiredAlpha)
+				alpha += FlxG.elapsed/_duration;
 			else
-			{				
-				alpha += FlxG.elapsed/_delay;
+			{								
+				_callbackTimer += FlxG.elapsed;
 				
-				if (alpha >= _desiredAlpha)
-					alpha = _desiredAlpha;
+				if (_callbackTimer > _callbackDelay)
+				{
+					if (_flashOnComplete != null)
+						_flashOnComplete();
+					if (_fadeOnComplete != null)
+						_fadeOnComplete();
+					_callbackTimer = _callbackDelay;
+				}
 			}
 			
 		}

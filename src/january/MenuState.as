@@ -1,5 +1,8 @@
 package january
 {
+	import flash.display.*;
+	import flash.events.*;
+	
 	import january.*;
 	
 	import org.flixel.*;
@@ -15,6 +18,13 @@ package january
 		override public function create():void
 		{
 			FlxG.bgColor = 0xFF000000;
+			
+			// Start off in windowed mode
+            //toggleFullscreen(StageDisplayState.NORMAL);
+ 
+            // Create a listener for when the window is resized (by escape)
+            //FlxG.stage.addEventListener(Event.RESIZE, windowResized);
+			FlxG.stage.addEventListener(MouseEvent.CLICK, toggleFullscreen);
 			
 				_soundText = new FlxText(50, 30, 200, "is your sound turned on?");
 				_soundText.setFormat("frucade", 8, 0xFFFFFFFF, "center", 0);
@@ -47,6 +57,13 @@ package january
 		}
 		
 		private function yes():void
+		{			
+			FlxG.mouse.hide();
+			FlxG.fade(0xFF000000, 5, newState);
+			//toggleFullscreen();
+		}
+		
+		private function newState():void
 		{
 			FlxG.switchState(new PlayState());
 		}
@@ -56,5 +73,42 @@ package january
 			_soundText.text = "come back when you've got sound."
 			_yesText.text = "okay, i'm ready.";
 		}
+		
+		/**
+		 * This is called when the user clicks the button.
+		 * By default, it will go to fullscreen if windowed, and windowed if fullscreen. 
+		 * Use the Force parameter to force it to go to a specific mode 	
+		 * 
+		 * @param ForceDisplayState
+		 * 
+		 */		
+        public static function toggleFullscreen(e:Event = null):void
+		{	 
+	            // 1. Change the size of the Flash window to fullscreen/windowed
+	            //    This is easily done by checking stage.displayState and then setting it accordingly
+	            if (FlxG.stage.displayState == StageDisplayState.NORMAL)
+	                FlxG.stage.displayState = StageDisplayState.FULL_SCREEN;
+                else
+	                FlxG.stage.displayState = StageDisplayState.NORMAL;
+	 
+	            windowResized();
+        }
+		 
+	        
+		/**
+		 * This is called every time the window is resized.
+		 * 
+		 * @param e
+		 * 
+		 */		  
+      public static function windowResized(e:Event = null):void
+		{    
+			FlxG.stage.align = ""; // Align the stage to the absolute center.
+			
+			if (FlxG.stage.stageWidth == 1280 || FlxG.stage.stageWidth == 1600 || FlxG.stage.stageWidth == 1920)
+				FlxG.stage.scaleMode = StageScaleMode.SHOW_ALL; // Scale the stage to the window size, but preserve aspect ratio.
+		}
+
 	}
+	
 }

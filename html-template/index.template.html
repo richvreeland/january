@@ -32,8 +32,8 @@
 		      left:50%;
 		      right:50%;
 		      bottom:50%;
-		      margin-left: -512px;       /* Half the height of your SWF*/
-		      margin-top: -218px; /* Half the width of your SWF*/
+		      margin-left: -480px;       /* Half the height of your SWF*/
+		      margin-top: -180px; /* Half the width of your SWF*/
 		    }
         </style>
         
@@ -55,6 +55,7 @@
             params.bgcolor = "${bgcolor}";
             params.allowscriptaccess = "sameDomain";
             params.allowfullscreen = "true";
+            params.allowfullscreeninteractive = "true";
             var attributes = {};
             attributes.id = "${application}";
             attributes.name = "${application}";
@@ -92,6 +93,7 @@
                 <param name="bgcolor" value="${bgcolor}" />
                 <param name="allowScriptAccess" value="sameDomain" />
                 <param name="allowFullScreen" value="true" />
+                <param name="allowFullScreenInteractive" value="true" />
                 <!--[if !IE]>-->
                 <object type="application/x-shockwave-flash" data="${swf}.swf" width="${width}" height="${height}">
                     <param name="quality" value="high" />
