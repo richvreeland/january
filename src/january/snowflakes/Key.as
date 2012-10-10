@@ -33,7 +33,7 @@ package january.snowflakes
 			else
 				keyIndex = newKey;
 			
-			playChord(true);
+			playChord();
 		}
 		
 	}

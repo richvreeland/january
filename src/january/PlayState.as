@@ -1,6 +1,7 @@
 package january
 {			
-	import flash.events.MouseEvent;
+	import flash.display.*;
+	import flash.events.*;
 	
 	import january.colorlayers.*;
 	import january.snowflakes.*;
@@ -20,6 +21,8 @@ package january
 		[Embed(source = "../assets/art/trees.png")] 	private static var _treeImg	: Class;
 		[Embed(source = "../assets/art/sky.png")] 		private static var _skyImg	: Class;
 		[Embed(source = "../assets/art/cabin.png")]		private static var _houseImg : Class;
+		
+		[Embed(source="../assets/art/flakes/small.png")]private static var _pixel:Class;
 		
 		//SOUNDS
 		[Embed(source = "../assets/audio/ambience.swf", symbol = "snow_01.aif")] private static var _ambience: Class;
@@ -49,18 +52,14 @@ package january
 		private static var _entered: Boolean;
 		
 		public static var player: Player;
-		public static var reflection: Reflection;
 		public static var snow 	: FlxGroup;
 		
 		public static var camera: FlxCamera;
-		public static var cameraRailsL: FlxSprite;
-		public static var cameraRailsR: FlxSprite;
+		public static var cameraRails: FlxSprite;
 		public static var startingX: Number = 420; //420; //2400 for End
-		public static var targetX: int;
-		public static var easing: Boolean = true;
 		
 		private static var _spawnTimer: FlxDelay;
-		private static var _resetTime : int;
+		private static var _resetTime : int = 200;
 		
 		override public function create():void
 		{					
@@ -108,8 +107,6 @@ package january
 				player = new Player();
 			add(player);
 			add(player.tongueBox);
-//				reflection = new Reflection();
-//			add(reflection);
 			
 			//	Build Houses
 				_houseLeft = new FlxSprite(50, 16);
@@ -124,11 +121,11 @@ package january
 				snow = new FlxGroup();
 			add(snow);
 			
-			// Create Backgrounds (keep order in tact for proper blending)
-				dusk  = new Dusk();
-				haze  = new Haze();
-				night = new Night();
-				black = new Black();
+			// Create Backgrounds (keep order in tact for proper blending)				
+				dusk   = new Dusk();
+				haze   = new Haze();
+				night  = new Night();
+				black  = new Black();
 			add(dusk);
 			add(haze);
 			add(night);
@@ -137,24 +134,18 @@ package january
 			// Add HUD
 			addHUD();
 			
-			// Create Camera and Camera Rails (Camera Follows Rails Object)										
-				cameraRailsR = new FlxSprite(startingX + FlxG.width + 1, 0);
-				cameraRailsR.makeGraphic(1, FlxG.height - 1,0xFFFF0000);
-				cameraRailsR.visible = false;
-			add(cameraRailsR);
-			
-			targetX = cameraRailsR.x;
-			
-				cameraRailsL = new FlxSprite(startingX + 2, 0);
-				cameraRailsL.makeGraphic(1, FlxG.height - 1,0xFFFF0000);
-				cameraRailsL.visible = false;
-				add(cameraRailsL);			
+			// Create Camera and Camera Rails (Camera Follows Rails Object)													
+				cameraRails = new FlxSprite(startingX + FlxG.width + 1, FlxG.height - 1);		
+				cameraRails.makeGraphic(1,1,0xFFFF0000);		
+				cameraRails.maxVelocity.x = 10;
+				cameraRails.visible = false;	
+			add(cameraRails);
 			
 				camera = new FlxCamera(0, 0, FlxG.width + 1, FlxG.height);
 				camera.setBounds(FlxG.worldBounds.x, 0, FlxG.worldBounds.width, FlxG.height);
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
-				camera.target = cameraRailsR;
-			add(camera);
+				camera.target = cameraRails;//R
+			add(camera);		
 			
 			FlxG.resetCameras(camera);
 			
@@ -181,15 +172,15 @@ package january
 						_spawnTimer.reset(12000);
 					else
 					{						
-						if (_resetTime < 25)
-							_resetTime = 25;
+						if (_resetTime <= 10)
+							_resetTime = 10;
 						
 						_spawnTimer.reset(_resetTime);
 					}
 					
 					Snowflake.manage();
 				}
-			
+							
 			super.update();	
 			
 			// Loop Sky Background
@@ -201,41 +192,36 @@ package january
 			// Collision Check
 			FlxG.overlap(snow, player.tongueBox, onLick);
 			FlxG.overlap(snow, player, player.onOverlap);
-			FlxG.overlap(player, cameraRailsL, moveCameraL);
-			FlxG.overlap(player, cameraRailsR, moveCameraR);
 			FlxG.overlap(player, _houseRight, enterHouse);
 			
-			// Camera Logic
-			if (camera.target == cameraRailsL && _outside == true)
-			{
-				cameraRailsL.x -= ((cameraRailsL.x - targetX)/50);
-				cameraRailsR.x = cameraRailsL.x + FlxG.width;
-			}
-			else if (camera.target == cameraRailsR && _outside == true)
-			{
-				cameraRailsR.x -= ((cameraRailsR.x - targetX)/50);
-				cameraRailsL.x = cameraRailsR.x - FlxG.width + 1;
-			}
-			
-		}
-		
-		public function moveCameraL(PlayerRef: Player, RailsRef: FlxSprite):void
-		{
-			camera.target = cameraRailsL;
-			targetX = RailsRef.x - FlxG.width + 50;
-			
-			if (targetX < FlxG.worldBounds.x)
-				targetX = FlxG.worldBounds.x
+			// Camera Logic					
+				if (player.x <= camera.scroll.x + 25)
+				{					
+					cameraRails.acceleration.x = 0;								
+					cameraRails.drag.x = 10;	
 					
-		}
-		
-		public function moveCameraR(PlayerRef: Player, RailsRef: FlxSprite):void
-		{
-			camera.target = cameraRailsR;
-			targetX = RailsRef.x + FlxG.width - 50;
+					if (cameraRails.velocity.x <= 0)											
+						{														
+							cameraRails.velocity.x = 0;														
+							cameraRails.drag.x = 0;														
+						}										
+				}								
+				else if (camera.scroll.x > _ground.width - FlxG.width - 25)										
+				{																				
+					cameraRails.x -= (cameraRails.x - _ground.width)/100;										
+					cameraRails.velocity.x *= -2;	
+					
+					if (cameraRails.velocity.x <= 0)
+							cameraRails.velocity.x = 0;										
+				}	
+				else if (FlxG.score > 0)	
+				{
+					cameraRails.acceleration.x = 10;
+					
+					if (cameraRails.velocity.x >= 10)	
+						cameraRails.acceleration.x = 0;				
+				}
 			
-			if (targetX > FlxG.worldBounds.width - 100)
-				targetX = FlxG.worldBounds.width
 		}
 		
 		public function enterHouse(PlayerRef: Player, HouseRef: FlxSprite):void
@@ -256,9 +242,8 @@ package january
 		{		
 			if (_outside == false)
 			{
-				camera.target = cameraRailsL;
-				targetX = FlxG.worldBounds.x;
-				cameraRailsL.x = FlxG.worldBounds.x + 1;
+				cameraRails.x = FlxG.worldBounds.x + FlxG.width;
+				camera.target = cameraRails;//L
 				player.x = 260;
 				FlxG.play(_doorClose, 0.3, -1);
 				black.alphaDown(3);
@@ -276,12 +261,12 @@ package january
 			if (pressedUpKey)
 			{
 				SnowRef.onLick();
-				textOutput.onLick(SnowRef.type);
+				textOutput.onLick(SnowRef);
 				haze.onLick();
 				dusk.onLick();
 				night.onLick();
 				
-				_resetTime = 200 - (FlxG.score * 10);
+				_resetTime -= 5;
 			}
 				
 		}
@@ -326,6 +311,21 @@ package january
 				HUDnote.exists  = !HUDnote.exists;
 				HUDevent.exists = !HUDevent.exists;
 			}	
+		}
+			
+		public static function fullscreen(e:Event = null):void
+		{	 
+			if (FlxG.stage.displayState == StageDisplayState.NORMAL)
+				FlxG.stage.displayState = StageDisplayState.FULL_SCREEN;
+			 		
+		}
+		
+		public static function resize(e:Event = null):void
+		{
+			// Align the stage to the absolute center.
+			FlxG.stage.align = "";
+			
+			//FlxG.width = FlxG.stage.stageWidth / FlxCamera.defaultZoom;
 		}
 
 	}

@@ -5,6 +5,7 @@ package january
 	import january.snowflakes.*;
 	
 	import org.flixel.*;
+	import org.flixel.plugin.photonstorm.*;
 	
 	public class Snowflake extends FlxSprite
 	{		
@@ -68,14 +69,16 @@ package january
 		protected static var notesLength: uint = notes.length;
 		
 		/** The various keys and their respective scales, stored in arrays. */
-		protected static var eMinor: Array = [E1,Fs1,G1,A1,B1,Cs2,D2,E2,Fs2,G2,A2,B2,Cs3,D3,E3,Fs3,G3,A3,B3,Cs4,D4,E4,Fs4,G4,A4,B4];
-		protected static var gMajor: Array = [B1,D2,E2,Fs2,G2,A2,B2,D3,E3,Fs3,G3,A3,B3,D4,E4,Fs4,G4,A4];
-		/** All of the keys, stored as strings in an array for easy access. */
-		protected static var keys: Array = ["EMinor", "GMajor"];
+		protected static var eMinor: Array = ["eMinor",E1,Fs1,G1,A1,B1,Cs2,D2,E2,Fs2,G2,A2,B2,Cs3,D3,E3,Fs3,G3,A3,B3,Cs4,D4,E4,Fs4,G4,A4,B4];
+		protected static var gMajor: Array = ["gMajor",B1,D2,E2,Fs2,G2,A2,B2,D3,E3,Fs3,G3,A3,B3,D4,E4,Fs4,G4,A4];
+		/** All of the keys, stored in an array for easy access. */
+		protected static var keys: Array = [eMinor, gMajor];
 		/** Length property of the keys array, stored once for better performance. */
 		protected static var keysLength: uint = keys.length;
 		/** The index position of a given key (used with keys) */
 		protected static var keyIndex: int;
+		/** The name of the current key, stored as a string. */
+		protected static var currentKey: String;
 		
 		/** The previous Note generated. */
 		protected static var _previous: Class;
@@ -109,11 +112,8 @@ package january
 		/** Wind modifier for y position. */
 		protected static var windY : Number = 0;
 		
-		/** Used to spawn flakes in front of screen, to offset camera movement. */
-		protected static var headway : Number = FlxG.width;
-		
 		// List of classes for getDefinitionByName() to use
-		Chord; Large; Octave; Small; Pedal; Incidental; Key;
+		Chord; Large; Octave; Small; Pedal; Incidental; Key; Harmony;
 		
 		/**
 		 * Snowflake Constructor! 
@@ -121,7 +121,7 @@ package january
 		 */		
 		public function Snowflake():void
 		{	
-			super(x, y);		
+			super(x, y);
 			
 			exists = false;
 		}
@@ -130,8 +130,8 @@ package january
 		public static function manage() : void
 		{				
 			// Snowflake spawning probabilities
-			var flakes		: Array = ["Small", "Large", "Octave", "Pedal", "Incidental", "Chord", "Key"];
-			var weights		: Array = [ 75    ,  15    ,  4      ,  2     ,  2			,  1.5   ,  0.5 ];
+			var flakes		: Array = ["Small", "Large", "Octave", "Harmony", "Chord", "Key"];
+			var weights		: Array = [ 75    ,  15    ,  4      ,  4       ,  1.5   ,  0.5 ];
 			
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var flakeID: String;
@@ -148,22 +148,22 @@ package january
 		}
 		
 		/** Spawns snowflakes. */
-		final private function spawn(flakeType: String):void
+		protected function spawn(flakeType: String):void
 		{						
 			var screenMidpoint:Number = PlayState.camera.scroll.x + (FlxG.width/2);
+			
 			if (FlxG.score > 0)
-				x = Helpers.randInt(PlayState.camera.scroll.x - headway, PlayState.camera.scroll.x + FlxG.width + headway);
+				x = Helpers.randInt(PlayState.camera.scroll.x, PlayState.cameraRails.x + FlxG.width);
 			else
 				x = screenMidpoint;
 			
-			if (x < FlxG.worldBounds.x || x > FlxG.worldBounds.width)
+			if (x < PlayState.camera.scroll.x || x > FlxG.worldBounds.width)
 				kill();
 
-			y = 0;
+				y = 0;
 			
 			// Set type to Snowflake Subclass name ie. "Small"
 			type = flakeType;
-			
 			exists = true;
 		}
 		
@@ -182,14 +182,18 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (y > FlxG.height || x < PlayState.player.x - headway || x > PlayState.player.x + headway)
-				kill();			
+			if (y > FlxG.height - 10 || x < PlayState.camera.scroll.x - width)
+				kill();
+
 		}
 		
 		/** Called when a Snowflake has been licked. */
 		public function onLick():void
-		{						
+		{					
 			FlxG.score += _pointValue;
+			
+			if (Text.storyOver == true)
+				incidentalMode == true;
 			
 			super.kill();
 		}
@@ -197,7 +201,7 @@ package january
 		/** When snowflakes hit the player but he doesn't lick them. */
 		public function onIncidental():void
 		{
-			_volume = Helpers.rand(0.05, 0.1);
+			_volume = Helpers.rand(0.025, 0.075);
 			
 			// Prevent an incidental collision from generating a pedal tone.
 			var switched:Boolean;
@@ -225,7 +229,7 @@ package january
 		 * Initializes, determines key and plays the note!
 		 * 
 		 */		
-		protected function playNote():void
+		final protected function playNote():void
 		{						
 			// if this is any licked Snowflake but the first one
 			if (_previous != null)
@@ -245,10 +249,7 @@ package january
 				FlxG.play(_initial, _volume);
 				_previous = _initial;
 				
-				if (_initial == E1 || _initial == E2 || _initial == E3 || _initial == E4)
-					keyIndex = 0;
-				else
-					keyIndex = 1;
+				keyIndex = 1;
 			}
 			
 		}
@@ -261,14 +262,14 @@ package january
 		 */		
 		final protected function determineKey():void
 		{			
+			currentKey = keys[keyIndex][0];
 			// Set function name and call it, ie. inGMajor()
-			var functionName:String = "in" + keys[keyIndex] as String;
+			var functionName:String = "in_" + currentKey as String;
 			var keyFunction:Function = this[functionName] as Function;
 			keyFunction();
 			
-			// Log Current Key to HUD
-			var keyText:String = functionName.slice(2,3) + " " + functionName.substr(3); 
-			PlayState.HUDkey.text = "Key: " + keyText;
+			// Log Current Key to HUD 
+			PlayState.HUDkey.text = "Key: " + functionName;
 		}
 		
 		/**
@@ -305,19 +306,19 @@ package january
 		 * @param isKeyFlake
 		 * 
 		 */		
-		protected function playChord(isKeyFlake:Boolean):void
+		final protected function playChord():void
 		{			
 			var chordTone1: Class;
 			var chordTone2: Class;
 			var chordTone3: Class;
 			var chordChoice: String;
 			
-			if (keyIndex == 0) 		// E Minor
+			if (currentKey == "eMinor")
 			{
 				// Pick a Chord Type to Generate
 				chordChoice = Helpers.pickFrom("i","v");
 				
-				if (chordChoice == "i" || isKeyFlake == true)
+				if (chordChoice == "i" || type == "Key")
 				{
 					chordTone1 = Helpers.pickFrom(E1,E3);
 					chordTone2 = Helpers.pickFrom(G2,E2);
@@ -330,12 +331,12 @@ package january
 					chordTone3 = Helpers.pickFrom(Fs2,Fs3);
 				}
 			}
-			else if (keyIndex == 1) 	// G Major
+			else if (currentKey == "gMajor")
 			{
 				// Pick a Chord Type to Generate
 				chordChoice = Helpers.pickFrom("I","iii");
 				
-				if (chordChoice == "I" || isKeyFlake == true)
+				if (chordChoice == "I" || type == "Key")
 				{
 					chordTone1 = Helpers.pickFrom(G1,G2);
 					chordTone2 = Helpers.pickFrom(G2,B2);
@@ -360,8 +361,8 @@ package january
 		/**
 		 * Generate an Octave! 
 		 */		
-		protected function playOctave():void
-		{			
+		final protected function playOctave():void
+		{		
 			var octaveTone: Class;
 			
 			for (var i:int = notesLength - 1; i > 0; --i)
@@ -372,13 +373,44 @@ package january
 					octaveTone = notes[i-12] as Class;
 			}
 			
-			FlxG.play(octaveTone, 0.1, -0.5);
+			if (octaveTone != null)
+				FlxG.play(octaveTone, 0.1, _pan);
+			else
+				FlxG.log("Null Octave Tone!");
+		}
+		
+		/**
+		 * Generate a Harmony Tone! 
+		 */		
+		final protected function playHarmonyNote():void
+		{						
+			var harmonyTone: Class;	
+			var currentScale:Array = keys[keyIndex] as Array;
+			var scaleLength:int = currentScale.length;
+			
+			for (var i:int = scaleLength - 1; i > 1; --i)
+			{								
+				if (_previous == currentScale[i])
+				{
+					if (i >= scaleLength - 2)
+						harmonyTone = currentScale[i-2] as Class;	
+					else if (i <= 2)
+						harmonyTone = currentScale[i+2] as Class;
+					else
+						harmonyTone = currentScale[i + Helpers.pickFrom(-2, 2)] as Class;
+				}
+			}
+			
+			if (harmonyTone != null)
+				FlxG.play(harmonyTone, 0.1, _pan);
+			else
+				FlxG.log("Null Harmony Tone!");
 		}
 		
 		/**
 		 * Plays a pedal tone! 
 		 */		
-		protected function playPedalTone():void
+		final protected function playPedalTone():void
 		{			
 			var pedalTone: Class;
 			
@@ -394,7 +426,7 @@ package january
 		 * Conditionals for generating in the key of E Minor. 
 		 * 
 		 */		
-		final protected function inEMinor():void
+		final protected function in_eMinor():void
 		{						
 				 if (_previous == E1) 	_play(Fs1,G1,B1,B2,Cs2,E2);
 			else if (_previous == Fs1)	_play(E1,Fs2,Fs3,G1,D2,E2);
@@ -429,7 +461,7 @@ package january
 		 * Conditionals for generating in the key of G Major. 
 		 * 
 		 */	
-		final protected function inGMajor():void
+		final protected function in_gMajor():void
 		{			
 				 if (_previous == B1)	_play(D2, D3, D4);
 			else if (_previous == D2)	_play(Fs2, Fs3);

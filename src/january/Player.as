@@ -73,7 +73,7 @@ package january
 			var pan: Number = 2 * ((this.x - PlayState.camera.scroll.x) / FlxG.width) - 1;
 			
 			if (FrameIndex == 4 || FrameIndex == 8 || FrameIndex == 11 || FrameIndex == 21)
-				FlxG.play(randomStep, 0.1, pan);
+				FlxG.play(randomStep, 0.05, pan);
 			
 		}
 		
@@ -151,13 +151,13 @@ package january
 			////////////////
 			
 			// Update scrolling boundaries.
-//			scrollLeft	= PlayState.camera.scroll.x + boundsLeft;
-//			scrollRight = PlayState.camera.scroll.x + boundsRight;
-//		
-//			if (x < scrollLeft)
-//				x = scrollLeft;
-//			else if (x > scrollRight)
-//				x = scrollRight;
+			scrollLeft	= PlayState.camera.scroll.x + boundsLeft;
+			scrollRight = PlayState.camera.scroll.x + boundsRight;
+		
+			if (x < scrollLeft)
+				x = scrollLeft;
+			else if (x > scrollRight)
+				x = scrollRight;
 			
 			// Update tongue collision box position
 			if (facing == RIGHT)

@@ -35,25 +35,12 @@ package january
 	        }
 	
 			/**
-			 * show() - 
-			 *  
-			 * @param Text
-			 * @param X
-			 * @param Y
-			 * 
-			 */			
-	        public function show(Text:String, X: Number, Y: Number):void
-			{
-			    
-			}
-	
-			/**
 			 * onLick() - Figures out what text to display next, and where to display it so it looks nice.
 			 *  
 			 * @param flakeType
 			 * 
 			 */			
-			public function onLick(flakeType: String):void
+			public function onLick(SnowRef: Snowflake):void
 			{							
 				var _text: String = "";
 				
@@ -61,7 +48,7 @@ package january
 				if (storyOver == false)
 				{
 					// Ignore Small flakes, otherwise move story forward!
-					if (flakeType == "Small")
+					if (SnowRef.type == "Small")
 						null;
 					else
 						_text = PlayState.strings[FlxG.score-1];
@@ -73,7 +60,7 @@ package january
 				{					
 					newScore = FlxG.score - PlayState.strings.length + 1;
 					
-					if (newScore != 0 && newScore % 10 == 0)
+					if (newScore != 0 && newScore % 10 == 0 && SnowRef.type != "Small")
 						_text = newScore.toString() + ".";
 				}
 				

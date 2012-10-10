@@ -19,7 +19,7 @@ package january.snowflakes
 		{
 			super.onLick();
 			
-			playChord(false);
+			playChord();
 		}
 	}
 }
