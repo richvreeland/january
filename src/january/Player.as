@@ -22,8 +22,6 @@ package january
 		
 		public var defaultX: Number;
 		
-//		public var tongueBox: FlxSprite;
-		
 		protected var stopped: Boolean;
 		
 		/** locally stored copy of the world bounds x position. */
@@ -42,9 +40,6 @@ package january
 			height   = 30;
 			offset.x = 4;
 			offset.y = 3;
-			
-//			tongueBox = new FlxSprite().makeGraphic(8,5);
-//			tongueBox.visible = false;
 			
 			// Set player's x position bounds
 			boundsLeft = 2;
@@ -149,18 +144,6 @@ package january
 				x = scrollRight;
 			else if (x <= _worldBoundsX + 50)
 				x = _worldBoundsX + 50;
-			
-			// Update tongue collision box position
-//			if (facing == RIGHT)
-//			{
-//				tongueBox.x = this.x + 1;
-//				tongueBox.y = this.y + 3;
-//			}	
-//			else // facing == LEFT
-//			{
-//				tongueBox.x = this.x - 1;
-//				tongueBox.y = this.y + 3;
-//			}
 			
 		}
 		

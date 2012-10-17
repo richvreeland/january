@@ -107,6 +107,9 @@ package january
 		/** Locally stored copy of the score. */
 		protected var _score: int = FlxG.score;
 		
+		/** Locally stored copy of the world bounds X */
+		protected var _worldBoundsWidth: Number = FlxG.worldBounds.width;
+		
 		/** Locally stored copy of the screen height. */
 		protected var _screenHeight: int = FlxG.height;
 		
@@ -164,12 +167,9 @@ package january
 			var screenMidpoint:Number = PlayState.camera.scroll.x + (FlxG.width/2);
 			
 			if (FlxG.score > 0)
-				x = Helpers.randInt(PlayState.camera.scroll.x, PlayState.cameraRails.x + FlxG.width);
+				x = Helpers.randInt(PlayState.camera.scroll.x, PlayState.cameraRails.x + 160);
 			else
 				x = screenMidpoint;
-			
-			if (x < PlayState.camera.scroll.x || x > FlxG.worldBounds.width)
-				kill();
 
 				y = 0;
 			
@@ -184,8 +184,8 @@ package january
 			// MOVEMENT //
 			//////////////			
 			
-			velocity.y = 10 + (_score * 0.1);// + windY;
-			velocity.x = (Math.cos(y / 5) * 5);// + windX;
+			velocity.y = int(10 + (_score * 0.1));// + windY;
+			velocity.x = int((Math.cos(y / 5) * 5));// + windX;
 			
 			super.update();
 			
@@ -193,7 +193,7 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (y > _screenHeight - 10 || x < PlayState.camera.scroll.x - width)
+			if (y > _screenHeight - 10 || x < PlayState.camera.scroll.x - width || x > _worldBoundsWidth)
 				kill();
 
 		}

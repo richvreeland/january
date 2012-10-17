@@ -15,13 +15,13 @@ package january
 		[Embed(source = "../assets/maps/level.txt", mimeType = "application/octet-stream")] 	private static var _levelMap	: Class;
 		[Embed(source = "../assets/maps/trees.txt", mimeType = "application/octet-stream")] 	private static var _treeMap 	: Class;
 		[Embed(source = "../assets/maps/backtrees.txt", mimeType = "application/octet-stream")] private static var _backtreeMap : Class;
-		[Embed(source = "../assets/maps/sky.txt", mimeType = "application/octet-stream")] 		private static var _skyMap		: Class;
 		
 		//SPRITES
 		[Embed(source = "../assets/art/ground.png")] 	private static var _groundImg	: Class;
 		[Embed(source = "../assets/art/trees.png")] 	private static var _treeImg		: Class;
 		[Embed(source = "../assets/art/backtrees.png")] private static var _backtreeImg	: Class;
 		[Embed(source = "../assets/art/sky.png")] 		private static var _skyImg		: Class;
+		[Embed(source = "../assets/art/hills.png")] 		private static var _hillsImg: Class;
 		[Embed(source = "../assets/art/cabin.png")]		private static var _houseImg	: Class;
 		
 		[Embed(source="../assets/art/flakes/small.png")]private static var _pixel:Class;
@@ -47,6 +47,7 @@ package january
 		private static var _trees		: FlxTilemap;
 		private static var _backtrees	: FlxTilemap;
 		private static var _sky			: FlxSprite;
+		private static var _hills		: FlxSprite;
 		
 		private static var _houseLeft : FlxSprite;
 		public static var houseRight: FlxSprite;
@@ -86,6 +87,11 @@ package january
 				_sky.velocity.x = -2;
 			add(_sky);
 			
+			// Build Hills
+			_hills = new FlxSprite(270, 72, _hillsImg);
+			_hills.scrollFactor.x = 0.025;
+			add(_hills);
+			
 			//	Build Tilemap
 				ground = new FlxTilemap();
 				ground.loadMap(new _levelMap, _groundImg, 16);
@@ -99,15 +105,15 @@ package january
 			
 			//	Build Trees
 				_backtrees = new FlxTilemap();
-				_backtrees.y = 83;
-				_backtrees.scrollFactor.x = 0.1;
-				_backtrees.loadMap(new _backtreeMap, _backtreeImg, 148, 13);
+				_backtrees.y = 89;
+				_backtrees.scrollFactor.x = 0.125;
+				_backtrees.loadMap(new _backtreeMap, _backtreeImg, 13, 7);
 			add(_backtrees);
 			
 				_trees = new FlxTilemap();
 				_trees.y = 83;
 				_trees.scrollFactor.x = 0.25;
-				_trees.loadMap(new _treeMap, _treeImg, 51, 15);
+				_trees.loadMap(new _treeMap, _treeImg, 51, 13);
 			add(_trees);				
 			
 			// Add Feedback Text
@@ -182,8 +188,8 @@ package january
 						_spawnTimer.reset(12000);
 					else
 					{						
-						if (_resetTime <= 30)
-							_resetTime = 30;
+						if (_resetTime <= 35)
+							_resetTime = 35;
 						
 						_spawnTimer.reset(_resetTime);
 					}
@@ -212,7 +218,7 @@ package january
 		
 		/** Controls Camera Movement */
 		private function cameraLogic():void
-		{
+		{			
 			if (FlxG.score > 0)
 			{
 				if (player.x <= camera.scroll.x + 25)
@@ -238,10 +244,12 @@ package january
 				{
 					cameraRails.acceleration.x = 10;
 					
-					if (cameraRails.velocity.x >= 10)	
-						cameraRails.acceleration.x = 0;				
-				}
+					if (cameraRails.velocity.x >= 10)
+						cameraRails.acceleration.x = 0;
+				}					
+				
 			}
+			
 		}
 		
 		/** Called When Player "Enters House" */
@@ -289,7 +297,7 @@ package january
 				haze.onLick();
 				night.onLick();
 				
-				if (_resetTime >= 35)
+				if (_resetTime >= 40)
 					_resetTime -= 5;
 				
 				// Camera Hack, so that it starts up again if you've gone through the house.
@@ -299,8 +307,6 @@ package january
 				if (textOutput.text == "snow falls..." && _resetTime >= 55)
 					_resetTime -= 20;
 			}
-			
-			FlxG.log(_resetTime);
 				
 		}
 		
