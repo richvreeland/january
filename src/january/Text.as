@@ -91,7 +91,12 @@ package january
 						// Check Bounds on Right Side
 						if (PlayState.player.x + realWidth > PlayState.camera.scroll.x + FlxG.width - _gutter)
 							x = PlayState.camera.scroll.x + FlxG.width - _gutter - realWidth;
+						
+						if (PlayState.camera.scroll.x > PlayState.ground.width - FlxG.width - 25)
+							x -= 50;
 					}
+					
+					
 					
 				}
 				

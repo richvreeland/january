@@ -12,15 +12,17 @@ package january
 	public class PlayState extends FlxState
 	{
 		//MAPS
-		[Embed(source = "../assets/maps/level.txt", mimeType = "application/octet-stream")] private static var _levelMap: Class;
-		[Embed(source = "../assets/maps/trees.txt", mimeType = "application/octet-stream")] private static var _treeMap : Class;
-		[Embed(source = "../assets/maps/sky.txt", mimeType = "application/octet-stream")] 	private static var _skyMap  : Class;
+		[Embed(source = "../assets/maps/level.txt", mimeType = "application/octet-stream")] 	private static var _levelMap	: Class;
+		[Embed(source = "../assets/maps/trees.txt", mimeType = "application/octet-stream")] 	private static var _treeMap 	: Class;
+		[Embed(source = "../assets/maps/backtrees.txt", mimeType = "application/octet-stream")] private static var _backtreeMap : Class;
+		[Embed(source = "../assets/maps/sky.txt", mimeType = "application/octet-stream")] 		private static var _skyMap		: Class;
 		
 		//SPRITES
-		[Embed(source = "../assets/art/ground.png")] 	private static var _groundImg: Class;
-		[Embed(source = "../assets/art/trees.png")] 	private static var _treeImg	: Class;
-		[Embed(source = "../assets/art/sky.png")] 		private static var _skyImg	: Class;
-		[Embed(source = "../assets/art/cabin.png")]		private static var _houseImg : Class;
+		[Embed(source = "../assets/art/ground.png")] 	private static var _groundImg	: Class;
+		[Embed(source = "../assets/art/trees.png")] 	private static var _treeImg		: Class;
+		[Embed(source = "../assets/art/backtrees.png")] private static var _backtreeImg	: Class;
+		[Embed(source = "../assets/art/sky.png")] 		private static var _skyImg		: Class;
+		[Embed(source = "../assets/art/cabin.png")]		private static var _houseImg	: Class;
 		
 		[Embed(source="../assets/art/flakes/small.png")]private static var _pixel:Class;
 		
@@ -41,12 +43,13 @@ package january
 		public static var strings: 	  Array;
 		public static var textOutput: Text;
 		
-		private static var _ground: FlxTilemap;
-		private static var _trees : FlxTilemap;
-		private static var _sky   : FlxSprite;
+		public static var ground		: FlxTilemap;
+		private static var _trees		: FlxTilemap;
+		private static var _backtrees	: FlxTilemap;
+		private static var _sky			: FlxSprite;
 		
 		private static var _houseLeft : FlxSprite;
-		private static var _houseRight: FlxSprite;
+		public static var houseRight: FlxSprite;
 		private static var _outside: Boolean = true;
 		private static var _entered: Boolean;
 		
@@ -84,17 +87,23 @@ package january
 			add(_sky);
 			
 			//	Build Tilemap
-				_ground = new FlxTilemap();
-				_ground.loadMap(new _levelMap, _groundImg, 16);
-				_ground.x = 0;
-			add(_ground);
+				ground = new FlxTilemap();
+				ground.loadMap(new _levelMap, _groundImg, 16);
+				ground.x = 0;
+			add(ground);
 			
 			//	Set World Bounds, for optimization purposes.
 			FlxG.worldBounds.x = 180;
-			FlxG.worldBounds.width = _ground.width;//- 160;
+			FlxG.worldBounds.width = ground.width;//- 160;
 			FlxG.worldBounds.height = FlxG.height;
 			
-			//	Build Treemap
+			//	Build Trees
+				_backtrees = new FlxTilemap();
+				_backtrees.y = 83;
+				_backtrees.scrollFactor.x = 0.1;
+				_backtrees.loadMap(new _backtreeMap, _backtreeImg, 148, 13);
+			add(_backtrees);
+			
 				_trees = new FlxTilemap();
 				_trees.y = 83;
 				_trees.scrollFactor.x = 0.25;
@@ -117,8 +126,8 @@ package january
 				_houseLeft.facing = FlxObject.LEFT;
 			add(_houseLeft);
 			
-				_houseRight = new FlxSprite(2768, 16, _houseImg);
-			add(_houseRight);
+				houseRight = new FlxSprite(2768, 16, _houseImg);
+			add(houseRight);
 						
 			// Create Snow
 				snow = new FlxGroup();
@@ -195,7 +204,7 @@ package january
 			FlxG.overlap(snow, player, onIncidental);
 			
 			// Check for Player Entering House
-			if (player.x > _houseRight.x + 5) enterHouse();
+			if (player.x > houseRight.x + 5) enterHouse();
 						
 			// Camera Behavior
 			cameraLogic();	
@@ -217,9 +226,9 @@ package january
 						cameraRails.drag.x = 0;														
 					}										
 				}								
-				else if (camera.scroll.x > _ground.width - FlxG.width - 25)										
+				else if (camera.scroll.x > ground.width - FlxG.width - 25)										
 				{																				
-					cameraRails.x -= (cameraRails.x - _ground.width)/100;										
+					cameraRails.x -= (cameraRails.x - ground.width)/100;										
 					cameraRails.velocity.x *= -2;	
 					
 					if (cameraRails.velocity.x <= 0)
@@ -237,9 +246,7 @@ package january
 		
 		/** Called When Player "Enters House" */
 		public function enterHouse():void
-		{
-			if (player.x > _houseRight.x + 5)
-			{				
+		{			
 				if (_outside == true)
 				{
 					FlxG.play(_doorOpen, 0.3, 1);
@@ -248,7 +255,6 @@ package january
 				}
 				
 				black.alphaUp(1, 1, exitHouse, 2);
-			}
 		}
 		
 		/** Called When Player "Exits House" */
@@ -260,8 +266,8 @@ package january
 				player.x = _houseLeft.x + 185;
 				FlxG.play(_doorClose, 0.3, -1);
 				FlxG.music.fadeIn(1);
-				haze.alphaDown(0,0);
-				night.alphaDown(0,0);
+				haze.alphaDown(30,0);
+				night.alphaDown(30,0);
 				black.alphaDown(3);
 				FlxG.score = 0;
 				_spawnTimer.reset(12000);
