@@ -20,6 +20,8 @@ package january
 		public var scrollLeft: int;
 		public var scrollRight: int;
 		
+		public var defaultX: Number;
+		
 		public var tongueBox: FlxSprite;
 		
 		protected var _tongueUp: Boolean;
@@ -28,7 +30,8 @@ package january
 		
 		public function Player()
 		{
-			x = PlayState.startingX + 25; y = 79;
+			defaultX = PlayState.startingX + 25;
+			x = defaultX; y = 79;
 			
 			super(x, y);
 			loadGraphic(sprite, false, true, 16, 33);

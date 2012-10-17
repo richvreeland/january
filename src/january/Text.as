@@ -44,6 +44,9 @@ package january
 			{							
 				var _text: String = "";
 				
+				if (FlxG.score == PlayState.strings.length + 1)
+					storyOver = true;
+				
 				// What to show during the story.
 				if (storyOver == false)
 				{
@@ -52,9 +55,6 @@ package january
 						null;
 					else
 						_text = PlayState.strings[FlxG.score-1];
-				
-					if (FlxG.score == PlayState.strings.length + 1)
-						storyOver = true;
 				}
 				else // What to show after the story is over.
 				{					
