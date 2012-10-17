@@ -9,18 +9,19 @@ package january.colorlayers
 		{
 			super();
 			
-			_fillColor = 0xFF948DA6;
+			_fillColor = 0xFF544F63;
 			blend = "multiply";
 		}
 		
 		override public function onLick():void
 		{			
 			// What to show after the story is over.
-			if (_layerOn == false && Text.storyOver == true)
+			if (_layerOn == false && FlxG.score == 10)
 			{
-				alphaUp(60, 0.35);
-				_layerOn == true;
+				alphaUp(120, 1);
+				_layerOn = true;
 			}
+
 		}
 		
 	}

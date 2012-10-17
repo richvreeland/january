@@ -47,21 +47,24 @@ package january
 				if (FlxG.score == PlayState.strings.length + 1)
 					storyOver = true;
 				
-				// What to show during the story.
-				if (storyOver == false)
+				if (PlayState.newGame == false)
 				{
-					// Ignore Small flakes, otherwise move story forward!
-					if (SnowRef.type == "Small")
-						null;
-					else
-						_text = PlayState.strings[FlxG.score-1];
-				}
-				else // What to show after the story is over.
-				{					
-					newScore = FlxG.score - PlayState.strings.length + 1;
-					
-					if (newScore != 0 && newScore % 10 == 0 && SnowRef.type != "Small")
-						_text = newScore.toString() + ".";
+					// What to show during the story.
+					if (storyOver == false)
+					{
+						// Ignore Small flakes, otherwise move story forward!
+						if (SnowRef.type == "Small")
+							null;
+						else
+							_text = PlayState.strings[FlxG.score-1];
+					}
+					else  // What to show after the story is over.
+					{					
+						newScore = FlxG.score - PlayState.strings.length + 1;
+						
+						if (newScore != 0 && newScore % 10 == 0 && SnowRef.type != "Small")
+							_text = newScore.toString() + ".";
+					}
 				}
 				
 				// Show the new text feedback.

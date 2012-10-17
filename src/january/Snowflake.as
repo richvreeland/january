@@ -104,6 +104,12 @@ package january
 		/** The type of snowflake in question. */
 		public var type: String;
 
+		/** Locally stored copy of the score. */
+		protected var _score: int = FlxG.score;
+		
+		/** Locally stored copy of the screen height. */
+		protected var _screenHeight: int = FlxG.height;
+		
 		/** The point value of each snowflake */
 		protected var _pointValue: int;
 		
@@ -131,7 +137,12 @@ package january
 		{				
 			// Snowflake spawning probabilities
 			var flakes		: Array = ["Small", "Large", "Octave", "Harmony", "Chord", "Key"];
-			var weights		: Array = [ 75    ,  15    ,  4      ,  4       ,  1.5   ,  0.5 ];
+			var weights		: Array = [ 75    ,  15.5  ,  4      ,  4       ,  1     ,  0.5 ];
+			
+			// Gradually introduce Harmony, Chord and Key flakes
+			if (FlxG.score < 64) weights[5] = 0;		
+			if (FlxG.score < 43) weights[4] = 0;				
+			if (FlxG.score < 22) weights[3] = 0;
 			
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var flakeID: String;
@@ -173,7 +184,7 @@ package january
 			// MOVEMENT //
 			//////////////			
 			
-			velocity.y = 10;// + windY;
+			velocity.y = 10 + (_score * 0.1);// + windY;
 			velocity.x = (Math.cos(y / 5) * 5);// + windX;
 			
 			super.update();
@@ -182,7 +193,7 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (y > FlxG.height - 10 || x < PlayState.camera.scroll.x - width)
+			if (y > _screenHeight - 10 || x < PlayState.camera.scroll.x - width)
 				kill();
 
 		}

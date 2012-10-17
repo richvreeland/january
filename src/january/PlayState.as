@@ -33,7 +33,6 @@ package january
 		public static var HUDnote : FlxText;
 		public static var HUDevent: FlxText;
 		
-		private static var dusk:  Dusk;
 		private static var haze:  Haze;
 		private static var night: Night;
 		private static var black: Black;
@@ -52,14 +51,17 @@ package january
 		private static var _entered: Boolean;
 		
 		public static var player: Player;
-		public static var snow 	: FlxGroup;
+		public static var tongue: Tongue;
+		public static var snow: FlxGroup;
 		
 		public static var camera: FlxCamera;
 		public static var cameraRails: FlxSprite;
 		public static var startingX: Number = 420; //420; //2400 for End
 		
 		private static var _spawnTimer: FlxDelay;
-		private static var _resetTime : int = 200;
+		private static var _resetTime : int = 400;
+		
+		public static var newGame: Boolean;
 		
 		override public function create():void
 		{					
@@ -69,7 +71,8 @@ package january
 			FlxG.volume = 1;
 			
 			//	Play Background Audio
-			FlxG.play(_ambience, 2, 0, true).fadeIn(1);
+			FlxG.playMusic(_ambience, 2);
+			FlxG.music.fadeIn(1);
 			
 			//	Set Background Color
 			FlxG.bgColor = 0xFFd8e3e5;
@@ -88,7 +91,6 @@ package january
 			
 			//	Set World Bounds, for optimization purposes.
 			FlxG.worldBounds.x = 180;
-			FlxG.worldBounds.y = 0;
 			FlxG.worldBounds.width = _ground.width;//- 160;
 			FlxG.worldBounds.height = FlxG.height;
 			
@@ -106,7 +108,8 @@ package january
 			// Draw Player
 				player = new Player();
 			add(player);
-			add(player.tongueBox);
+				tongue = new Tongue();
+			add(tongue);
 			
 			//	Build Houses
 				_houseLeft = new FlxSprite(50, 16);
@@ -122,11 +125,9 @@ package january
 			add(snow);
 			
 			// Create Backgrounds (keep order in tact for proper blending)				
-				dusk   = new Dusk();
 				haze   = new Haze();
 				night  = new Night();
 				black  = new Black();
-			add(dusk);
 			add(haze);
 			add(night);
 			add(black);
@@ -144,7 +145,7 @@ package january
 				camera = new FlxCamera(0, 0, FlxG.width + 1, FlxG.height);
 				camera.setBounds(FlxG.worldBounds.x, 0, FlxG.worldBounds.width, FlxG.height);
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
-				camera.target = cameraRails;//R
+				camera.target = cameraRails;
 			add(camera);		
 			
 			FlxG.resetCameras(camera);
@@ -172,8 +173,8 @@ package january
 						_spawnTimer.reset(12000);
 					else
 					{						
-						if (_resetTime <= 10)
-							_resetTime = 10;
+						if (_resetTime <= 30)
+							_resetTime = 30;
 						
 						_spawnTimer.reset(_resetTime);
 					}
@@ -190,21 +191,31 @@ package january
 			toggleHUD();
 			
 			// Collision Check
-			FlxG.overlap(snow, player.tongueBox, onLick);
-			FlxG.overlap(snow, player, player.onOverlap);
-			FlxG.overlap(player, _houseRight, enterHouse);
+			FlxG.overlap(snow, tongue, onLick);
+			FlxG.overlap(snow, player, onIncidental);
 			
-			// Camera Logic					
+			// Check for Player Entering House
+			if (player.x > _houseRight.x + 5) enterHouse();
+						
+			// Camera Behavior
+			cameraLogic();	
+		}
+		
+		/** Controls Camera Movement */
+		private function cameraLogic():void
+		{
+			if (FlxG.score > 0)
+			{
 				if (player.x <= camera.scroll.x + 25)
 				{					
 					cameraRails.acceleration.x = 0;								
 					cameraRails.drag.x = 10;	
 					
 					if (cameraRails.velocity.x <= 0)											
-						{														
-							cameraRails.velocity.x = 0;														
-							cameraRails.drag.x = 0;														
-						}										
+					{														
+						cameraRails.velocity.x = 0;														
+						cameraRails.drag.x = 0;														
+					}										
 				}								
 				else if (camera.scroll.x > _ground.width - FlxG.width - 25)										
 				{																				
@@ -212,7 +223,7 @@ package january
 					cameraRails.velocity.x *= -2;	
 					
 					if (cameraRails.velocity.x <= 0)
-							cameraRails.velocity.x = 0;										
+						cameraRails.velocity.x = 0;										
 				}	
 				else if (FlxG.score > 0)	
 				{
@@ -221,16 +232,18 @@ package january
 					if (cameraRails.velocity.x >= 10)	
 						cameraRails.acceleration.x = 0;				
 				}
-			
+			}
 		}
 		
-		public function enterHouse(PlayerRef: Player, HouseRef: FlxSprite):void
+		/** Called When Player "Enters House" */
+		public function enterHouse():void
 		{
-			if (PlayerRef.x > HouseRef.x + 5)
+			if (player.x > _houseRight.x + 5)
 			{				
 				if (_outside == true)
 				{
 					FlxG.play(_doorOpen, 0.3, 1);
+					FlxG.music.fadeOut(1);
 					_outside = false;
 				}
 				
@@ -238,16 +251,22 @@ package january
 			}
 		}
 		
+		/** Called When Player "Exits House" */
 		public function exitHouse():void
 		{		
 			if (_outside == false)
 			{
-				cameraRails.x = FlxG.worldBounds.x + FlxG.width;
-				camera.target = cameraRails;//L
-				player.x = 260;
+				cameraRails.x = FlxG.worldBounds.x;
+				player.x = _houseLeft.x + 185;
 				FlxG.play(_doorClose, 0.3, -1);
+				FlxG.music.fadeIn(1);
+				haze.alphaDown(0,0);
+				night.alphaDown(0,0);
 				black.alphaDown(3);
+				FlxG.score = 0;
+				_spawnTimer.reset(12000);
 				_outside = true;
+				newGame = true;
 			}
 		}
 		
@@ -257,18 +276,32 @@ package january
 		 */
 		public function onLick(SnowRef: Snowflake, TongueRef: FlxSprite):void
 		{
-			var pressedUpKey:Boolean = FlxG.keys.UP || FlxG.keys.W;
-			if (pressedUpKey)
+			if (FlxG.keys.UP || FlxG.keys.W)
 			{
 				SnowRef.onLick();
 				textOutput.onLick(SnowRef);
 				haze.onLick();
-				dusk.onLick();
 				night.onLick();
 				
-				_resetTime -= 5;
-			}
+				if (_resetTime >= 35)
+					_resetTime -= 5;
 				
+				// Camera Hack, so that it starts up again if you've gone through the house.
+				if (FlxG.score == 1 && player.x < startingX)
+					cameraRails.x += FlxG.width;
+				
+				if (textOutput.text == "snow falls..." && _resetTime >= 55)
+					_resetTime -= 20;
+			}
+			
+			FlxG.log(_resetTime);
+				
+		}
+		
+		public function onIncidental(SnowRef: Snowflake, PlayerRef: Player):void
+		{
+			if (FlxG.keys.UP == false && FlxG.keys.W == false)
+				SnowRef.kill();
 		}
 		
 		/**
@@ -313,20 +346,20 @@ package january
 			}	
 		}
 			
-		public static function fullscreen(e:Event = null):void
-		{	 
-			if (FlxG.stage.displayState == StageDisplayState.NORMAL)
-				FlxG.stage.displayState = StageDisplayState.FULL_SCREEN;
-			 		
-		}
-		
-		public static function resize(e:Event = null):void
-		{
-			// Align the stage to the absolute center.
-			FlxG.stage.align = "";
-			
-			//FlxG.width = FlxG.stage.stageWidth / FlxCamera.defaultZoom;
-		}
+//		public static function fullscreen(e:Event = null):void
+//		{	 
+//			if (FlxG.stage.displayState == StageDisplayState.NORMAL)
+//				FlxG.stage.displayState = StageDisplayState.FULL_SCREEN;
+//			 		
+//		}
+//		
+//		public static function resize(e:Event = null):void
+//		{
+//			// Align the stage to the absolute center.
+//			FlxG.stage.align = "";
+//			
+//			//FlxG.width = FlxG.stage.stageWidth / FlxCamera.defaultZoom;
+//		}
 
 	}
 

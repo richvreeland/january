@@ -22,11 +22,12 @@ package january
 		
 		public var defaultX: Number;
 		
-		public var tongueBox: FlxSprite;
-		
-		protected var _tongueUp: Boolean;
+//		public var tongueBox: FlxSprite;
 		
 		protected var stopped: Boolean;
+		
+		/** locally stored copy of the world bounds x position. */
+		protected var _worldBoundsX: Number = FlxG.worldBounds.x;
 		
 		public function Player()
 		{
@@ -42,8 +43,8 @@ package january
 			offset.x = 4;
 			offset.y = 3;
 			
-			tongueBox = new FlxSprite().makeGraphic(8,5);
-			tongueBox.visible = false;
+//			tongueBox = new FlxSprite().makeGraphic(8,5);
+//			tongueBox.visible = false;
 			
 			// Set player's x position bounds
 			boundsLeft = 2;
@@ -56,18 +57,6 @@ package january
 			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 6);
 			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 6);
 			addAnimationCallback(footsteps);
-		}
-		
-		public function onOverlap(SnowRef: Snowflake, PlayerRef: Player):void
-		{
-			var pressedUpKey:Boolean = FlxG.keys.UP || FlxG.keys.W;
-			if (!pressedUpKey)
-				SnowRef.onIncidental();
-		}
-		
-		public function get tongueUp():Boolean
-		{
-			return _tongueUp;
 		}
 		
 		protected function footsteps(Animation:String, FrameNumber:uint, FrameIndex:uint):void
@@ -86,9 +75,6 @@ package january
 			// MOVEMENT //
 			//////////////
 			
-			var pressedUpKey:Boolean = FlxG.keys.UP || FlxG.keys.W;
-			var releasedLeftRightKey:Boolean = FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D");
-			
 			acceleration.x = 0;
 			
 			if (FlxG.keys.LEFT || FlxG.keys.A)
@@ -105,7 +91,7 @@ package january
 				drag.x = 5000;
 				acceleration.x += drag.x;
 			}
-			else if (releasedLeftRightKey)
+			else if (FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D"))
 			{
 				drag.x = 100;
 				stopped = true;
@@ -117,14 +103,14 @@ package january
 			
 			if (velocity.x != 0)	
 			{				
-				if (pressedUpKey)					
+				if (FlxG.keys.UP || FlxG.keys.W)					
 					play("walkTongue");					
 				else					
 					play("walk");				
 			}				
 			else	// if player velocity is 0			
 			{       				
-				if (pressedUpKey)	// and still looking up					
+				if (FlxG.keys.UP || FlxG.keys.W)	// and still looking up					
 				{					
 					// Skip to frame to smooth out the transition.			
 					if (stopped == true)
@@ -161,18 +147,20 @@ package january
 				x = scrollLeft;
 			else if (x > scrollRight)
 				x = scrollRight;
+			else if (x <= _worldBoundsX + 50)
+				x = _worldBoundsX + 50;
 			
 			// Update tongue collision box position
-			if (facing == RIGHT)
-			{
-				tongueBox.x = this.x + 1;
-				tongueBox.y = this.y + 3;
-			}	
-			else // facing == LEFT
-			{
-				tongueBox.x = this.x - 1;
-				tongueBox.y = this.y + 3;
-			}
+//			if (facing == RIGHT)
+//			{
+//				tongueBox.x = this.x + 1;
+//				tongueBox.y = this.y + 3;
+//			}	
+//			else // facing == LEFT
+//			{
+//				tongueBox.x = this.x - 1;
+//				tongueBox.y = this.y + 3;
+//			}
 			
 		}
 		
