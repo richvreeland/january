@@ -274,8 +274,8 @@ package january
 				player.x = _houseLeft.x + 185;
 				FlxG.play(_doorClose, 0.3, -1);
 				FlxG.music.fadeIn(1);
-				haze.alphaDown(30,0);
-				night.alphaDown(30,0);
+				haze.alphaDown(0,0);
+				night.alphaDown(20,0);
 				black.alphaDown(3);
 				FlxG.score = 0;
 				_spawnTimer.reset(12000);

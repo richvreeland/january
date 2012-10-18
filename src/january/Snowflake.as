@@ -69,10 +69,10 @@ package january
 		protected static var notesLength: uint = notes.length;
 		
 		/** The various keys and their respective scales, stored in arrays. */
-		protected static var eMinor: Array = ["eMinor",E1,Fs1,G1,A1,B1,Cs2,D2,E2,Fs2,G2,A2,B2,Cs3,D3,E3,Fs3,G3,A3,B3,Cs4,D4,E4,Fs4,G4,A4,B4];
-		protected static var gMajor: Array = ["gMajor",B1,D2,E2,Fs2,G2,A2,B2,D3,E3,Fs3,G3,A3,B3,D4,E4,Fs4,G4,A4];
+		protected static var eDorian: Array = ["eDorian",E1,Fs1,G1,A1,B1,Cs2,D2,E2,Fs2,G2,A2,B2,Cs3,D3,E3,Fs3,G3,A3,B3,Cs4,D4,E4,Fs4,G4,A4,B4];
+		protected static var dMajor: Array = ["dMajor",B1,D2,E2,Fs2,G2,A2,B2,D3,E3,Fs3,G3,A3,B3,D4,E4,Fs4,G4,A4];
 		/** All of the keys, stored in an array for easy access. */
-		protected static var keys: Array = [eMinor, gMajor];
+		protected static var keys: Array = [eDorian, dMajor];
 		/** Length property of the keys array, stored once for better performance. */
 		protected static var keysLength: uint = keys.length;
 		/** The index position of a given key (used with keys) */
@@ -95,7 +95,7 @@ package january
 		protected static var incidentalMode: Boolean = false;
 		
 		/** The very first note that's triggered. */
-		private static var _initial: Class = gMajor[Helpers.randInt(0, gMajor.length / 2)] as Class;
+		private static var _initial: Class = dMajor[Helpers.randInt(0, dMajor.length/2)] as Class;
 		
 		///////////////////////////
 		// NON-MUSIC DEFINITIONS //
@@ -140,7 +140,7 @@ package january
 		{				
 			// Snowflake spawning probabilities
 			var flakes		: Array = ["Small", "Large", "Octave", "Harmony", "Chord", "Key"];
-			var weights		: Array = [ 75    ,  15.5  ,  4      ,  4       ,  1     ,  0.5 ];
+			var weights		: Array = [ 74.5  ,  15    ,  4      ,  4       ,  2     ,  0.5 ];
 			
 			// Gradually introduce Harmony, Chord and Key flakes
 			if (FlxG.score < 64) weights[5] = 0;		
@@ -184,8 +184,8 @@ package january
 			// MOVEMENT //
 			//////////////			
 			
-			velocity.y = int(10 + (_score * 0.1));// + windY;
-			velocity.x = int((Math.cos(y / 5) * 5));// + windX;
+			velocity.y = 10 + (_score * 0.1);// + windY;
+			velocity.x = (Math.cos(y / 5) * 5);// + windX;
 			
 			super.update();
 			
@@ -280,7 +280,7 @@ package january
 			keyFunction();
 			
 			// Log Current Key to HUD 
-			PlayState.HUDkey.text = "Key: " + functionName;
+			PlayState.HUDkey.text = "Key: " + currentKey;
 		}
 		
 		/**
@@ -319,53 +319,45 @@ package january
 		 */		
 		final protected function playChord():void
 		{			
-			var chordTone1: Class;
-			var chordTone2: Class;
-			var chordTone3: Class;
-			var chordChoice: String;
+			currentKey = keys[keyIndex][0];
 			
-			if (currentKey == "eMinor")
+			var chordTones: Array;
+			var choice: int;
+			
+			/* Note: Chords that should only be triggered for Key flakes, should go above the type == "Key" conditional */
+			
+			if (currentKey == "eDorian")
 			{
 				// Pick a Chord Type to Generate
-				chordChoice = Helpers.pickFrom("i","v");
+				choice = Helpers.randInt(1, 7);
 				
-				if (chordChoice == "i" || type == "Key")
-				{
-					chordTone1 = Helpers.pickFrom(E1,E3);
-					chordTone2 = Helpers.pickFrom(G2,E2);
-					chordTone3 = Helpers.pickFrom(B1,Cs2);
-				}
-				else if (chordChoice == "v")
-				{
-					chordTone1 = Helpers.pickFrom(B1,B2);
-					chordTone2 = Helpers.pickFrom(D3,Cs3);
-					chordTone3 = Helpers.pickFrom(Fs2,Fs3);
-				}
+					 if (choice == 1) 					chordTones = [E1, B1, G2];	//	I-
+				else if (choice == 2 || type == "Key")	chordTones = [Fs2, G2, D3];	//	2 b3 b7
+				else if (choice == 3) 					chordTones = [Cs2, E2, A2];	//  IV/3rd
+				else if (choice == 4) 					chordTones = [A1, G2, Cs3];	//	IV7
+				else if (choice == 5) 					chordTones = [Fs2, A2, D3];	//	VII/3rd
+				else if (choice == 6) 					chordTones = [B1, Fs2, Cs3];	//	Vno5add9
+				else if (choice == 7) 					chordTones = [Cs2, E2, E3];	//	IV/3rd
 			}
-			else if (currentKey == "gMajor")
+			else if (currentKey == "dMajor")
 			{
 				// Pick a Chord Type to Generate
-				chordChoice = Helpers.pickFrom("I","iii");
-				
-				if (chordChoice == "I" || type == "Key")
-				{
-					chordTone1 = Helpers.pickFrom(G1,G2);
-					chordTone2 = Helpers.pickFrom(G2,B2);
-					chordTone3 = Helpers.pickFrom(D2,E2);
-				}
-				else if (chordChoice == "iii")
-				{
-					chordTone1 = Helpers.pickFrom(B1,B2);
-					chordTone2 = Helpers.pickFrom(D3,D2);
-					chordTone3 = Helpers.pickFrom(Fs2,Fs3);
-				}
+				choice = Helpers.randInt(1, 6);
+					
+					 if (choice == 1) 					chordTones = [D2, E2, Cs3];	//	I sus2 M7
+				else if (choice == 2) 					chordTones = [E2, Fs2, A2];	//	I sus2
+				else if (choice == 3) 					chordTones = [Fs2, A2, E3];	//	III-7
+				else if (choice == 4) 					chordTones = [D2, Fs2, A2];	//	I	
+				else if (choice == 5 || type == "Key")	chordTones = [Fs2, A2, D3];	//	I/3rd
+				else if (choice == 6) 					chordTones = [E2, G2, D3];	//	II-7
 			}
+		
+			FlxG.play(chordTones[0], 0.15, 0);
+			FlxG.play(chordTones[1], 0.15, 1);
+			FlxG.play(chordTones[2], 0.15,-1);
 			
-			FlxG.play(chordTone1, 0.15, 0);
-			FlxG.play(chordTone2, 0.15, 1);
-			FlxG.play(chordTone3, 0.15,-1);
-			
-			PlayState.HUDevent.text = "Chord: " + chordChoice;
+			PlayState.HUDevent.text = "Chord: " + choice;
+			PlayState.HUDkey.text = "Key: " + currentKey;
 		}
 		
 		
@@ -434,10 +426,10 @@ package january
 		}
 		
 		/**
-		 * Conditionals for generating in the key of E Minor. 
+		 * Conditionals for generating in the key of E Dorian. 
 		 * 
 		 */		
-		final protected function in_eMinor():void
+		final protected function in_eDorian():void
 		{						
 				 if (_previous == E1) 	_play(Fs1,G1,B1,B2,Cs2,E2);
 			else if (_previous == Fs1)	_play(E1,Fs2,Fs3,G1,D2,E2);
@@ -469,30 +461,52 @@ package january
 		}
 		
 		/**
-		 * Conditionals for generating in the key of G Major. 
+		 * Conditionals for generating in the key of D Major. 
 		 * 
 		 */	
-		final protected function in_gMajor():void
+		final protected function in_dMajor():void
 		{			
-				 if (_previous == B1)	_play(D2, D3, D4);
-			else if (_previous == D2)	_play(Fs2, Fs3);
-			else if (_previous == E2)	_play(G2, D3);
-			else if (_previous == Fs2)	_play(G2, A2);
-			else if (_previous == G2)	_play(D2, A2, B2);
-			else if (_previous == A2)	_play(G2, Fs3, B2);
-			else if (_previous == B2)	_play(Fs2, A2, D3, E3, Fs3);
-			else if (_previous == D3)	_play(Fs2, Fs3);
-			else if (_previous == E3)	_play(A2, D3, Fs3, B3);
-			else if (_previous == Fs3)	_play(D3, G3, A3);
-			else if (_previous == G3)	_play(B3, B2, B1);
-			else if (_previous == A3)	_play(D3, G3, D4, Fs4);
-			else if (_previous == B3)	_play(E2, G3, E3, E4);
-			else if (_previous == D4)	_play(B3, Fs4);
-			else if (_previous == E4)	_play(Fs4);
-			else if (_previous == Fs4)	_play(D4, G4);
-			else if (_previous == G4)	_play(G3, A4, B3);
-			else if (_previous == A4)	_play(A3, D4);
+				 if (_previous == B1)	_play(G2, B2, D3);
+			else if (_previous == D2)	_play(G2, D3, Fs2, Fs3);
+			else if (_previous == E2)	_play(G2, E3, D3);
+			else if (_previous == Fs2)	_play(G2, Fs3, A2, D2);
+			else if (_previous == G2)	_play(G4, Fs2, E2, D2, B1, A2, B2, D3, E3, Fs3, G3, A3, B3);
+			else if (_previous == A2)	_play(G2, Fs2, D2, B2, D3, Fs3, A3);
+			else if (_previous == B2)	_play(G2, A2, D3, Fs3, G3, B3);
+			else if (_previous == Cs3)	_play(D3, B2, A2);
+			else if (_previous == D3)	_play(G2, A2, B2, Fs3, G3, A3, B3, Cs3);
+			else if (_previous == E3)	_play(G2, A2, D3, Fs3, E4);
+			else if (_previous == Fs3)	_play(G3, A2, D3, Fs2, Cs3);
+			else if (_previous == G3)	_play(G4, Fs3, E3, D3, B2, A3, B3, D2, E2, Fs4, A4);
+			else if (_previous == A3)	_play(G3, Fs3, D3, B3, D4, Fs4, A4);
+			else if (_previous == B3)	_play(G3, A3, D4, Fs3, Fs4, B2, E3);
+			else if (_previous == Cs4)	_play(D4, B3, A3);
+			else if (_previous == D4)	_play(G3, B3, E4, Fs4, G4, Fs3, D3, Cs4);
+			else if (_previous == E4)	_play(G3, D4, Fs4, E3);
+			else if (_previous == Fs4)	_play(G4, A3, D4, Fs3, Cs4);
+			else if (_previous == G4)	_play(G3, Fs4, A4, D4, E4, B3);
+			else if (_previous == A4)	_play(B3, D4, Fs4, A3);
 								   else _play(G2,G3);
+			
+//				 if (_previous == B1)	_play(D2, D3, D4);
+//			else if (_previous == D2)	_play(Fs2, Fs3);
+//			else if (_previous == E2)	_play(G2, D3);
+//			else if (_previous == Fs2)	_play(G2, A2);
+//			else if (_previous == G2)	_play(D2, A2, B2);
+//			else if (_previous == A2)	_play(G2, Fs3, B2);
+//			else if (_previous == B2)	_play(Fs2, A2, D3, E3, Fs3);
+//			else if (_previous == D3)	_play(Fs2, Fs3);
+//			else if (_previous == E3)	_play(A2, D3, Fs3, B3);
+//			else if (_previous == Fs3)	_play(D3, G3, A3);
+//			else if (_previous == G3)	_play(B3, B2, B1);
+//			else if (_previous == A3)	_play(D3, G3, D4, Fs4);
+//			else if (_previous == B3)	_play(E2, G3, E3, E4);
+//			else if (_previous == D4)	_play(B3, Fs4);
+//			else if (_previous == E4)	_play(Fs4);
+//			else if (_previous == Fs4)	_play(D4, G4);
+//			else if (_previous == G4)	_play(G3, A4, B3);
+//			else if (_previous == A4)	_play(A3, D4);
+//								   else _play(G2,G3);
 		}
 	}
 }

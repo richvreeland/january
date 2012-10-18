@@ -18,7 +18,7 @@ package january.colorlayers
 			// What to show after the story is over.
 			if (_layerOn == false && FlxG.score == 10)
 			{
-				alphaUp(120, 1);
+				alphaUp(120, 0.8);
 				_layerOn = true;
 			}
 

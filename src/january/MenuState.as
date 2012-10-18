@@ -62,7 +62,7 @@ package january
 		private function yes():void
 		{			
 			FlxG.mouse.hide();
-			FlxG.fade(0xFF000000, 0.05, newState);
+			FlxG.fade(0xFF000000, 1, newState);
 			//toggleFullscreen();
 		}
 		

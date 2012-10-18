@@ -24,14 +24,10 @@ package january.snowflakes
 			var newKey:int = Helpers.randInt(0, keysLength - 1);
 			
 			// make sure that onLick, the Key flake always changes the key!
-			if (newKey == keyIndex)
-			{
-				keyIndex = newKey + 1;
-				if (keyIndex > keysLength - 1)
-					keyIndex -= 2;
-			}
-			else
-				keyIndex = newKey;
+			while (newKey == keyIndex)
+				newKey = Helpers.randInt(0, keysLength - 1);
+			
+			keyIndex = newKey;
 			
 			playChord();
 		}
