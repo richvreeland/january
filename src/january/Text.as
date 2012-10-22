@@ -1,7 +1,6 @@
 package january
 {
 	import january.snowflakes.*;
-	
 	import org.flixel.*;
 	
 		public class Text extends FlxText
@@ -9,16 +8,7 @@ package january
 	        [Embed(source="../assets/frucade.ttf", fontFamily="frucade", embedAsCFF="false")] public static var font:String;
 	
 	        /** The number of seconds to hold the text before it starts to fade. */
-	        private var _lifespan: Number;
-	
-			/** The gutter size, used to keep text off screen edges. */
-			private var _gutter: Number = 20;
-			
-			/** Whether the story is over or not. */
-		   	public static var storyOver: Boolean;
-		
-			/** The new score, once the story is over. Takes over for FlxG.score */
-			public static var newScore: Number = 0;
+	        private static var _lifespan: Number;	
 			    
 	        public function Text():void
 			{
@@ -28,8 +18,7 @@ package january
 				
 	            super(x,y,width);
 	
-				velocity.y = -8;
-	
+				velocity.y = -8;	
 	            font = "frucade";
 	            alpha = 0;
 	        }
@@ -44,59 +33,57 @@ package january
 			{							
 				var _text: String = "";
 				
-				if (FlxG.score == PlayState.strings.length + 1)
-					storyOver = true;
-				
-				if (PlayState.newGame == false)
+				// When to show Play and Replay modes, and when to count the Replay notes.
+				if (SnowRef.type == "Large")
 				{
-					// What to show during the story.
-					if (storyOver == false)
-					{
-						// Ignore Small flakes, otherwise move story forward!
-						if (SnowRef.type == "Small")
-							null;
-						else
-							_text = PlayState.strings[FlxG.score-1];
-					}
-					else  // What to show after the story is over.
-					{					
-						newScore = FlxG.score - PlayState.strings.length + 1;
-						
-						if (newScore != 0 && newScore % 10 == 0 && SnowRef.type != "Small")
-							_text = newScore.toString() + ".";
-					}
+					if (Snowflake.replayMode == true)
+						_text = "Replay"
+					else
+						_text = "Play"
 				}
+				else if (SnowRef.type == "Key" || SnowRef.type == "Chord" || FlxG.score == 2)
+					_text = "Play";
+				else if (Snowflake.replayMode == true)
+				{
+					if (Snowflake.replaySequenceIndex != 0)
+						_text = Snowflake.replaySequenceIndex.toString();						
+					else
+						_text = Snowflake.replaySequence.length.toString();
+				}
+				
+				if (Global.newGame == true)
+					_text = "";
+				else if (FlxG.score == 1)
+					_text = "January";
 				
 				// Show the new text feedback.
 				if (_text != "")
 				{
-					_lifespan = 1.75;        
+					_lifespan = Global.textLifespan;        
 					text = _text;
 					alpha = 1;
 					x = PlayState.player.x;
-					y = PlayState.player.y - 20;
+					y = PlayState.player.y - 25;
 					
 					if (PlayState.player.facing == LEFT)
 					{
-						x -= realWidth + 4;
+						x -= realWidth - 6;
 						
 						// Check Bounds on Left Side
-						if (PlayState.player.x - realWidth < _gutter + PlayState.camera.scroll.x)
-							x = PlayState.camera.scroll.x + _gutter;	
+						if (PlayState.player.x - realWidth < Global.textGutter + PlayState.camera.scroll.x)
+							x = PlayState.camera.scroll.x + Global.textGutter;	
 					}
 					else // facing == RIGHT
 					{
 						x -= 4;
 						
 						// Check Bounds on Right Side
-						if (PlayState.player.x + realWidth > PlayState.camera.scroll.x + FlxG.width - _gutter)
-							x = PlayState.camera.scroll.x + FlxG.width - _gutter - realWidth;
+						if (PlayState.player.x + realWidth > PlayState.cameraRails.x - Global.textGutter)
+							x = PlayState.cameraRails.x - Global.textGutter - realWidth;
 						
 						if (PlayState.player.x + realWidth > PlayState.houseRight.x)
-							x = PlayState.houseRight.x - _gutter - realWidth;
-					}
-					
-					
+							x = PlayState.houseRight.x - Global.textGutter - realWidth;
+					}					
 					
 				}
 				
@@ -113,6 +100,7 @@ package january
 					
 				if (alpha < 0)
 					alpha = 0;
+				
 			}
 		
 	    }

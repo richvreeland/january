@@ -1,6 +1,7 @@
 package january
 {	
-	import flash.events.*;
+	import flash.events.Event;
+	import flash.display.StageDisplayState;
 	
 	import january.*;
 	
@@ -23,9 +24,6 @@ package january
 			FlxG.bgColor = 0xFF000000;
 			
 			FlxG.mouse.load(mouse, 3);
-			
-			// Start off in windowed mode
-            //toggleFullscreen(StageDisplayState.NORMAL);
 			
 				_soundText = new FlxText(0, 30, 320, "is your sound turned on?");
 				_soundText.setFormat("frucade", 8, 0xFFFFFFFF, "center", 0);
@@ -61,9 +59,9 @@ package january
 		
 		private function yes():void
 		{			
+			PlayState.fullScreen();
 			FlxG.mouse.hide();
 			FlxG.fade(0xFF000000, 1, newState);
-			//toggleFullscreen();
 		}
 		
 		private function newState():void
@@ -108,7 +106,7 @@ package january
 		}
 		
 		override public function update():void
-		{
+		{			
 			if (FlxG.keys.SPACE || FlxG.keys.ENTER)
 				newState();
 			

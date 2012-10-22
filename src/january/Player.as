@@ -15,35 +15,26 @@ package january
 		private static var footstepsLength: uint = footsteps.length;
 		
 		public var boundsLeft : int;
-		public var boundsRight : int;
 		
 		public var scrollLeft: int;
 		public var scrollRight: int;
 		
-		public var defaultX: Number;
-		
 		protected var stopped: Boolean;
-		
-		/** locally stored copy of the world bounds x position. */
-		protected var _worldBoundsX: Number = FlxG.worldBounds.x;
 		
 		public function Player()
 		{
-			defaultX = PlayState.startingX + 25;
-			x = defaultX; y = 79;
+			x = Global.PLAYER_X_INIT; y = 79;
 			
 			super(x, y);
 			loadGraphic(sprite, false, true, 16, 33);
-			maxVelocity.x = 25;
 			
-			width    = 6;
-			height   = 30;
-			offset.x = 4;
-			offset.y = 3;
+			width    = 8;
+			height   = 2;
+			offset.x = 5;
+			offset.y = 8;
 			
 			// Set player's x position bounds
 			boundsLeft = 2;
-			boundsRight = FlxG.width - frameWidth;
 			
 			// Add animations.
 			addAnimation("idle", [19,16,18,17,15,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 6);
@@ -70,19 +61,18 @@ package january
 			// MOVEMENT //
 			//////////////
 			
+			maxVelocity.x = 25 + (FlxG.score * 0.05);
 			acceleration.x = 0;
 			
 			if (FlxG.keys.LEFT || FlxG.keys.A)
 			{	
 				facing = LEFT;
-				offset.x = 6;
 				drag.x = 5000;
 				acceleration.x -= drag.x;
 			}
 			else if (FlxG.keys.RIGHT || FlxG.keys.D)
 			{
 				facing = RIGHT;
-				offset.x = 4;
 				drag.x = 5000;
 				acceleration.x += drag.x;
 			}
@@ -136,14 +126,14 @@ package january
 			
 			// Update scrolling boundaries.
 			scrollLeft	= PlayState.camera.scroll.x + boundsLeft;
-			scrollRight = PlayState.camera.scroll.x + boundsRight;
+			scrollRight = PlayState.cameraRails.x - width;
 		
 			if (x < scrollLeft)
 				x = scrollLeft;
 			else if (x > scrollRight)
 				x = scrollRight;
-			else if (x <= _worldBoundsX + 50)
-				x = _worldBoundsX + 50;
+			else if (x <= FlxG.worldBounds.x + 50)
+				x = FlxG.worldBounds.x + 50;
 			
 		}
 		

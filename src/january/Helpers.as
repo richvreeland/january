@@ -1,7 +1,7 @@
 package january
 {
 	final public class Helpers
-	{
+	{		
 		public static function rand(minNumber:Number, maxNumber:Number):Number
 		{
 			// Returns a random Number within a range.

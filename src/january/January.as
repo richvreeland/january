@@ -4,28 +4,33 @@ package january
 	import flash.events.*;
 	
 	[SWF(width="960", height="360", backgroundColor="#000000")]
+	[Frame(factoryClass = "january.Preloader")]
 	
 	public class January extends FlxGame
 	{
+		public static const INIT_WIDTH:		uint = 320;
+		public static const INIT_HEIGHT:	uint = 120;
+		public static const INIT_STATE:		Class = MenuState;
+		public static const INIT_ZOOM:		Number = 3;	
+		
 		public function January()
-		{
+		{			
 			// 2.66 : 1
-			super(320, 120, MenuState, 3);
+			super(INIT_WIDTH, INIT_HEIGHT, INIT_STATE, INIT_ZOOM);
 			
 			// Force the debugger
-			forceDebugger = true;
+			//forceDebugger = true;
 		}
 		
 		/**
 		 * Remove some listeners, add others. 
 		 */		
-//		 override protected function create(FlashEvent:Event):void
-//        {
-//            super.create(FlashEvent);
-// 
-//			// Full Screen Listeners
-//			FlxG.stage.addEventListener(MouseEvent.CLICK, PlayState.fullscreen);
-//			FlxG.stage.addEventListener(Event.RESIZE, PlayState.resize);
-//        }
+		 override protected function create(FlashEvent:Event):void
+        {
+            super.create(FlashEvent);
+ 
+			// Full Screen Listeners
+			FlxG.stage.addEventListener(Event.RESIZE, PlayState.resize);
+        }
 	}
 }

@@ -448,7 +448,7 @@ package org.flixel
 					_accumulator += elapsedMS;
 					if(_accumulator > _maxAccumulation)
 						_accumulator = _maxAccumulation;
-					while(_accumulator > _step)		// Changed >= to >, Based on krix's fix from flixel forums
+					while(_accumulator >= _step)		// Changed >= to >, Based on krix's fix from flixel forums
 					{
 						step();
 						_accumulator = _accumulator - _step; 
@@ -673,7 +673,7 @@ package org.flixel
 			//Add basic input event listeners and mouse container
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-			stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
+			//stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 			addChild(_mouse);

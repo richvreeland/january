@@ -21,7 +21,7 @@ package january.snowflakes
 			super.onLick();
 			
 			playNote();
-			playHarmonyNote();
+			playHarmonyTone();
 		}
 		
 	}
