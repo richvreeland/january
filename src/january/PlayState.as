@@ -70,11 +70,11 @@ package january
 			
 			//	Kill Mouse, Initialize Score, Set Global Volume to 1.
 			FlxG.mouse.hide();
-			FlxG.score = 1;
+			FlxG.score = Global.SCORE_INIT;
 			FlxG.volume = 1;
 			
 			//	Play Background Audio
-			FlxG.playMusic(_ambience, 2);
+			FlxG.playMusic(_ambience, 2);	//2
 			FlxG.music.fadeIn(1);
 			
 			//	Set Background Color
@@ -100,7 +100,7 @@ package january
 			//	Set World Bounds, for optimization purposes.
 			FlxG.worldBounds.x = 180;
 			FlxG.worldBounds.width = ground.width;
-			FlxG.worldBounds.y = 78;
+			FlxG.worldBounds.y = 0;
 			FlxG.worldBounds.height = FlxG.height - FlxG.worldBounds.y;
 			
 			//	Build Trees
@@ -137,6 +137,9 @@ package january
 				snow = new FlxGroup();
 			add(snow);
 			
+			// Add HUD
+			addHUD();
+			
 			// Create Backgrounds (keep order in tact for proper blending)				
 				haze   = new Haze();
 				night  = new Night();
@@ -144,9 +147,6 @@ package january
 			add(haze);
 			add(night);
 			add(black);
-			
-			// Add HUD
-			addHUD();
 			
 			// Demo End Layer
 				title = new FlxText(0, 35, 320, "fin");
@@ -163,7 +163,7 @@ package january
 			// Create Camera and Camera Rails (Camera Follows Rails Object)													
 				cameraRails = new FlxSprite(Global.CAMERA_X_INIT + FlxG.width + 1, FlxG.height - 1);		
 				cameraRails.makeGraphic(1,1,0xFFFF0000);		
-				cameraRails.maxVelocity.x = 10;
+				cameraRails.maxVelocity.x = 9;
 				cameraRails.visible = false;	
 			add(cameraRails);
 			
@@ -380,7 +380,7 @@ package january
 				
 				fullScreenWidth = FlxG.stage.stageWidth / FlxCamera.defaultZoom;
 				
-				FlxG.stage.align = StageAlign.LEFT;	
+				FlxG.stage.align = StageAlign.LEFT;
 				FlxG.width = fullScreenWidth;
 				// use this if switching to fullscreen while in PlayState
 				//cameraRails.x += (fullScreenWidth - January.INIT_WIDTH);

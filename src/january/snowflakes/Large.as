@@ -11,6 +11,7 @@ package january.snowflakes
 					
 			makeGraphic(2, 2);
 			
+			_windY = 15;
 			_pointValue = 1;
 			_volume = Helpers.rand(0.25, 0.4);
 		}

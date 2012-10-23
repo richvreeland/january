@@ -2,6 +2,30 @@ package january
 {
 	final public class Helpers
 	{		
+		public static function flatten(arrays:Array):Array
+		{
+			var result:Array = [];
+			for(var i:int = 0; i < arrays.length; i++)
+			{
+				result = result.concat(arrays[i]);
+			}
+			return result;
+		}
+		
+		public static function removeItemArray(theArray:Array, theItem:*):Array
+		{
+			for(var i:int=0; i < theArray.length; i++)
+			{
+				if(theArray[i] == theItem)
+				{
+					theArray.splice(i,1);
+					i-=1;
+				}
+			}
+			
+			return theArray;
+		}
+		
 		public static function rand(minNumber:Number, maxNumber:Number):Number
 		{
 			// Returns a random Number within a range.

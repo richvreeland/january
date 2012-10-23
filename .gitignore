@@ -1,2 +1,4 @@
 bin-debug
 bin-debug/*
+bin-release
+bin-release/*

@@ -14,6 +14,7 @@ package january.snowflakes
 			
 			loadGraphic(sprite);
 			
+			_windY = 15;
 			_pointValue = 1;
 		}
 		
@@ -21,13 +22,17 @@ package january.snowflakes
 		{			
 			super.onLick();
 			
-			var newKey:int = Helpers.randInt(0, keysLength - 1);
+			var newIndex:int = Helpers.randInt(0, keys.length - 1);
 			
 			// make sure that onLick, the Key flake always changes the key!
-			while (newKey == keyIndex)
-				newKey = Helpers.randInt(0, keysLength - 1);
+			while (newIndex == keyIndex)
+				newIndex = Helpers.randInt(0, keys.length - 1);
 			
-			keyIndex = newKey;
+			keyIndex = newIndex;
+			
+			//Update Current Key
+			currentKey = keys[keyIndex][0];
+			PlayState.HUDkey.text = "Key: " + currentKey;
 			
 			playChord();
 		}

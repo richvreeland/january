@@ -40,9 +40,9 @@ package january
 			addAnimation("idle", [19,16,18,17,15,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 6);
 			addAnimation("tongueUp", [1, 2], 12, false);
 			addAnimation("tongueDown", [1, 0], 12, false);
-			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 6);
-			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 6);
-			addAnimationCallback(footsteps);
+			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 7);
+			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 7);
+			//addAnimationCallback(footsteps);
 		}
 		
 		protected function footsteps(Animation:String, FrameNumber:uint, FrameIndex:uint):void
@@ -51,7 +51,7 @@ package january
 			var pan: Number = 2 * ((this.x - PlayState.camera.scroll.x) / FlxG.width) - 1;
 			
 			if (FrameIndex == 4 || FrameIndex == 8 || FrameIndex == 11 || FrameIndex == 21)
-				FlxG.play(randomStep, 0.05, pan);
+				FlxG.play(randomStep, 0.05, pan, false, true);
 			
 		}
 		
@@ -61,7 +61,7 @@ package january
 			// MOVEMENT //
 			//////////////
 			
-			maxVelocity.x = 25 + (FlxG.score * 0.05);
+			maxVelocity.x = 27;
 			acceleration.x = 0;
 			
 			if (FlxG.keys.LEFT || FlxG.keys.A)
@@ -130,7 +130,7 @@ package january
 		
 			if (x < scrollLeft)
 				x = scrollLeft;
-			else if (x > scrollRight)
+			else if (x > scrollRight && Global.newGame == false)
 				x = scrollRight;
 			else if (x <= FlxG.worldBounds.x + 50)
 				x = FlxG.worldBounds.x + 50;
