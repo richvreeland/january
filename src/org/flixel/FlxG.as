@@ -232,13 +232,6 @@ package org.flixel
 		 * Internal storage system to prevent graphics from being used repeatedly in memory.
 		 */
 		static protected var _cache:Object;
-		
-		///////////////////////////////
-		
-		/** An array of sounds, used for artificial voice stealing. */
-		static public var limitedSounds:FlxGroup; 
-		
-		///////////////////////////////
 
 		static public function getLibraryName():String
 		{
@@ -517,32 +510,20 @@ package org.flixel
 		 * @param	EmbeddedSound	The embedded sound resource you want to play.  To stream, use the optional URL parameter instead.
 		 * @param	Volume			How loud to play it (0 to 1).
 		 * @param	Looped			Whether to loop this sound.
-		 * @param	LimitExcluded	!!!!ADDED - Whether or not to include sound in artificial voice limiting.
 		 * @param	AutoDestroy		Whether to destroy this sound when it finishes playing.  Leave this value set to "false" if you want to re-use this <code>FlxSound</code> instance.
 		 * @param	AutoPlay		Whether to play the sound.
 		 * @param	URL				Load a sound from an external web resource instead.  Only used if EmbeddedSound = null.
 		 * 
 		 * @return	A <code>FlxSound</code> object.
 		 */
-		static public function loadSound(EmbeddedSound:Class=null,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,LimitExcluded:Boolean=false,AutoDestroy:Boolean=false,AutoPlay:Boolean=false,URL:String=null):FlxSound
+		static public function loadSound(EmbeddedSound:Class=null,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=false,AutoPlay:Boolean=false,URL:String=null):FlxSound
 		{			
 			if((EmbeddedSound == null) && (URL == null))
 			{
 				FlxG.log("WARNING: FlxG.loadSound() requires either\nan embedded sound or a URL to work.");
 				return null;
 			}
-			
-			/////// ARTIFICIAL VOICE LIMITING ///////////
-			
-			var sound:FlxSound;
-			
-//			if(LimitExcluded == false)
-//				sound = limitedSounds.recycle(FlxSound) as FlxSound;
-//			else
-			sound = sounds.recycle(FlxSound) as FlxSound;
-			
-			/////////////////////////////////////////////
-			
+			var sound:FlxSound = sounds.recycle(FlxSound) as FlxSound;
 			if(EmbeddedSound != null)
 				sound.loadEmbedded(EmbeddedSound,Looped,AutoDestroy);
 			else
@@ -561,14 +542,13 @@ package org.flixel
 		 * @param	EmbeddedSound	The sound you want to play.
 		 * @param	Volume			How loud to play it (0 to 1).
 		 * @param	Looped			Whether to loop this sound.
-		 * @param	LimitExcluded	!!!!ADDED - Whether or not to include sound in artificial voice limiting.
 		 * @param	AutoDestroy		Whether to destroy this sound when it finishes playing.  Leave this value set to "false" if you want to re-use this <code>FlxSound</code> instance.
 		 * 
 		 * @return	A <code>FlxSound</code> object.
 		 */
-		static public function play(EmbeddedSound:Class,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,LimitExcluded:Boolean=false,AutoDestroy:Boolean=true):FlxSound
+		static public function play(EmbeddedSound:Class,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=true):FlxSound
 		{
-			return FlxG.loadSound(EmbeddedSound,Volume,Pan,Looped,LimitExcluded,AutoDestroy,true);
+			return FlxG.loadSound(EmbeddedSound,Volume,Pan,Looped,AutoDestroy,true);
 		}
 		
 		/**
@@ -584,7 +564,7 @@ package org.flixel
 		 */
 		static public function stream(URL:String,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=true):FlxSound
 		{
-			return FlxG.loadSound(null,Volume,Pan,Looped,false,AutoDestroy,true,URL);
+			return FlxG.loadSound(null,Volume,Pan,Looped,AutoDestroy,true,URL);
 		}
 		
 		/**
@@ -632,16 +612,6 @@ package org.flixel
 				if((sound != null) && (ForceDestroy || !sound.survive))
 					sound.destroy();
 			}
-			
-			var j:uint = 0;
-			var sound2:FlxSound;
-			var k:uint = limitedSounds.members.length;
-			while(j < k)
-			{
-				sound2 = limitedSounds.members[i++] as FlxSound;
-				if((sound2 != null) && (ForceDestroy || !sound2.survive))
-					sound2.destroy();
-			}
 		}
 		
 		/**
@@ -653,8 +623,6 @@ package org.flixel
 				music.update();
 			if((sounds != null) && sounds.active)
 				sounds.update();
-			if((limitedSounds != null) && limitedSounds.active)
-				limitedSounds.update();
 		}
 		
 		/**
@@ -673,16 +641,6 @@ package org.flixel
 				if((sound != null) && sound.exists && sound.active)
 					sound.pause();
 			}
-			
-			var j:uint = 0;
-			var sound2:FlxSound;
-			var k:uint = limitedSounds.length;
-			while(j < k)
-			{
-				sound2 = limitedSounds.members[i++] as FlxSound;
-				if((sound2 != null) && sound2.exists && sound2.active)
-					sound2.pause();
-			}
 		}
 		
 		/**
@@ -700,16 +658,6 @@ package org.flixel
 				sound = sounds.members[i++] as FlxSound;
 				if((sound != null) && sound.exists)
 					sound.resume();
-			}
-			
-			var j:uint = 0;
-			var sound2:FlxSound;
-			var k:uint = limitedSounds.length;
-			while(j < k)
-			{
-				sound2 = limitedSounds.members[i++] as FlxSound;
-				if((sound2 != null) && sound2.exists)
-					sound2.resume();
 			}
 		}
 		
@@ -1147,7 +1095,6 @@ package org.flixel
 			FlxG.mute = false;
 			FlxG._volume = 0.5;
 			FlxG.sounds = new FlxGroup();
-			FlxG.limitedSounds = new FlxGroup();
 			FlxG.volumeHandler = null;
 			
 			FlxG.clearBitmapCache();

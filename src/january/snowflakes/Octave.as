@@ -5,13 +5,13 @@ package january.snowflakes
 	
 	public class Octave extends Snowflake
 	{	
-		[Embed(source="../assets/art/flakes/octave.png")] private var sprite : Class;
+		[Embed(source="../assets/art/flakes/octave.png")] private var sprite: Class;
 		
 		public function Octave():void
 		{
 			super();
 			
-			loadGraphic(sprite);
+			loadGraphic(sprite, false, false, 3, 3);
 			
 			_windY = 14;
 			_pointValue = 1;

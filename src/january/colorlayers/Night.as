@@ -16,10 +16,10 @@ package january.colorlayers
 		override public function onLick():void
 		{			
 			// What to show after the story is over.
-			if (_layerOn == false && FlxG.score == 10)
+			if (layerOn == false && FlxG.score == 2) //10
 			{
-				alphaUp(120, 0.8);
-				_layerOn = true;
+				alphaUp(10, 0.85); //120
+				layerOn = true;
 			}
 
 		}

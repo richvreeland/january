@@ -2,6 +2,8 @@ package january
 {			
 	import flash.display.*;
 	import flash.events.*;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import january.colorlayers.*;
 	
@@ -28,15 +30,12 @@ package january
 		[Embed(source = "../assets/audio/door_open.mp3")] 						 private static var _doorOpen: Class;
 		[Embed(source = "../assets/audio/door_close.mp3")] 						 private static var _doorClose:Class;
 		
-		public static var HUDkey  : FlxText;
-		public static var HUDnote : FlxText;
-		public static var HUDevent: FlxText;
-		
 		private static var haze:  Haze;
-		private static var night: Night;
+		public static var night: Night;
 		private static var black: Black;
 
 		public static var textOutput: Text;
+		public static var controls: Controls;
 		
 		public static var ground		: FlxTilemap;
 		private static var _trees		: FlxTilemap;
@@ -51,13 +50,15 @@ package january
 		
 		public static var player: Player;
 		public static var snow: FlxGroup;
+		public static var fireflies: FlxGroup;
+		public static var residue: Residue;
 		
 		public static var camera: FlxCamera;
 		public static var cameraRails: FlxSprite;
 		
 		private static var _spawnTimer: FlxDelay;
 		
-		[Embed(source="../assets/art/flakes/key.png")] private static var note : Class;
+		[Embed(source="../assets/art/cursor.png")] private static var note : Class;
 		
 		private static var title: FlxText;
 		private static var titleNote: FlxSprite;
@@ -74,16 +75,16 @@ package january
 			FlxG.volume = 1;
 			
 			//	Play Background Audio
-			FlxG.playMusic(_ambience, 2);	//2
-			FlxG.music.fadeIn(1);
+			FlxG.playMusic(_ambience, 2);
+			FlxG.music.fadeIn(2);
 			
 			//	Set Background Color
 			FlxG.bgColor = 0xFFd8e3e5;
 			
 			//	Build Skymap		
-				_sky = new FlxSprite(0, 0, _skyImg);
-				_sky.scrollFactor.x = 0;
-				_sky.velocity.x = -2;
+			_sky = new FlxSprite(0, 0, _skyImg);
+			_sky.scrollFactor.x = 0;
+			_sky.velocity.x = -2;
 			add(_sky);
 			
 			// Build Hills
@@ -92,70 +93,76 @@ package january
 			add(_hills);
 			
 			//	Build Tilemap
-				ground = new FlxTilemap();
-				ground.loadMap(new _levelMap, _groundImg, 16);
-				ground.x = 0;
+			ground = new FlxTilemap();
+			ground.loadMap(new _levelMap, _groundImg, 16);
+			ground.x = 0;
 			add(ground);
 			
 			//	Set World Bounds, for optimization purposes.
 			FlxG.worldBounds.x = 180;
 			FlxG.worldBounds.width = ground.width;
-			FlxG.worldBounds.y = 0;
+			FlxG.worldBounds.y = 78;
 			FlxG.worldBounds.height = FlxG.height - FlxG.worldBounds.y;
 			
 			//	Build Trees
-				_backtrees = new FlxTilemap();
-				_backtrees.y = 89;
-				_backtrees.scrollFactor.x = 0.075;
-				_backtrees.loadMap(new _backtreeMap, _backtreeImg, 13, 7);
+			_backtrees = new FlxTilemap();
+			_backtrees.y = 89;
+			_backtrees.scrollFactor.x = 0.075;
+			_backtrees.loadMap(new _backtreeMap, _backtreeImg, 13, 7);
 			add(_backtrees);
 			
-				_trees = new FlxTilemap();
-				_trees.y = 83;
-				_trees.scrollFactor.x = 0.25;
-				_trees.loadMap(new _treeMap, _treeImg, 51, 13);
+			_trees = new FlxTilemap();
+			_trees.y = 83;
+			_trees.scrollFactor.x = 0.25;
+			_trees.loadMap(new _treeMap, _treeImg, 51, 13);
 			add(_trees);				
 			
 			// Add Feedback Text
-				textOutput = new Text();
+			textOutput = new Text();
 			add(textOutput);
 			
 			// Draw Player
-				player = new Player();
-			add(player);
+			player = new Player();	add(player);
 
 			//	Build Houses
-				_houseLeft = new FlxSprite(50, 16);
-				_houseLeft.loadGraphic(_houseImg,false,true);
-				_houseLeft.facing = FlxObject.LEFT;
+			_houseLeft = new FlxSprite(50, 16);
+			_houseLeft.loadGraphic(_houseImg,false,true);
+			_houseLeft.facing = FlxObject.LEFT;
 			add(_houseLeft);
-			
-				houseRight = new FlxSprite(2768, 16, _houseImg);
+			houseRight = new FlxSprite(2768, 16, _houseImg);
 			add(houseRight);
 						
 			// Create Snow
-				snow = new FlxGroup();
-			add(snow);
+			snow = new FlxGroup();	add(snow);
 			
 			// Add HUD
-			addHUD();
+			HUD.init();
+			add(HUD.keysData);
+			add(HUD.modeData);
+			add(HUD.noteData);
 			
 			// Create Backgrounds (keep order in tact for proper blending)				
-				haze   = new Haze();
-				night  = new Night();
-				black  = new Black();
-			add(haze);
-			add(night);
-			add(black);
+			haze   = new Haze();	add(haze);
+			night  = new Night();	add(night);
+			black  = new Black();	add(black);
+			
+			// Add Fireflies.
+			fireflies = new FlxGroup();	add(fireflies);
+			
+//				residue = new Residue();
+//			add(residue);
+//			
+//				controls = new Controls();
+//			add(controls);
 			
 			// Demo End Layer
-				title = new FlxText(0, 35, 320, "fin");
-				title.setFormat("frucade", 8, 0xFFFFFFFF, "center", 0);
+				title = new FlxText(160, 53, 320, "fin");
+				title.setFormat("frucade", 8, 0xFFFFFFFF);
 				title.scrollFactor.x = 0;
 				title.visible = false;
 			add(title);
 			
-				titleNote = new FlxSprite((FlxG.width/2 - 2), 52, note);
+				titleNote = new FlxSprite(160, 70, note);
 				titleNote.scrollFactor.x = 0;
 				titleNote.visible = false;
 			add(titleNote);
@@ -183,7 +190,7 @@ package january
 		}
 		
 		override public function update():void
-		{		
+		{								
 			// Spawn snowflakes when timer expires.
 			_spawnTimer.callback =
 				function():void
@@ -207,7 +214,7 @@ package january
 			if (_sky.x < -716) _sky.x = 0;
 			
 			// Toggle HUD
-			toggleHUD();
+			HUD.toggle();
 			
 			// Collision Check
 			FlxG.overlap(snow, player, onLick);
@@ -228,7 +235,10 @@ package january
 			if (FlxG.keys.UP || FlxG.keys.W || FlxG.keys.justReleased("UP") || FlxG.keys.justReleased("W"))
 			{
 				SnowRef.onLick();
-				textOutput.onLick(SnowRef);
+				SnowRef.fly();
+				//controls.onLick();
+				//textOutput.onLick(SnowRef);
+				//residue.onLick(SnowRef);
 				haze.onLick();
 				night.onLick();
 				
@@ -240,8 +250,8 @@ package january
 					// demo end stuff
 					FlxG.music.fadeOut(0.01);
 					black.alphaUp(0.01);
-					title.visible = true;
-					titleNote.visible = true;
+					title.x = titleNote.x = FlxG.width/2 - 5;
+					title.visible = titleNote.visible = true;
 					snow.kill();
 					player.kill();
 					
@@ -324,48 +334,6 @@ package january
 			}
 		}
 		
-		/**
-		 * Instantiates HUD.
-		 */
-		public function addHUD() : void
-		{				
-			// Add Last Note Text
-			HUDnote = new FlxText(6, -2, 256, "Note: ");
-			HUDnote.scrollFactor.x = 0;
-			HUDnote.font = "frucade";
-			add(HUDnote);
-			
-			// Add Event Text
-			HUDevent = new FlxText(2, 8, 256, "Event: ");
-			HUDevent.scrollFactor.x = 0;
-			HUDevent.font = "frucade";
-			add(HUDevent);
-			
-			// Add Key Text
-			HUDkey = new FlxText(11, 18, 256, "Key: ");
-			HUDkey.scrollFactor.x = 0;
-			HUDkey.font = "frucade";
-			add(HUDkey);
-			
-			// Hide HUD by default.
-			HUDkey.exists 	= false;
-			HUDnote.exists 	= false;
-			HUDevent.exists = false;
-		}
-		
-		/**
-		 * Turns HUD on or off.
-		 */ 
-		public function toggleHUD() : void
-		{
-			if(FlxG.keys.justPressed("H") == true)
-			{
-				HUDkey.exists   = !HUDkey.exists;
-				HUDnote.exists  = !HUDnote.exists;
-				HUDevent.exists = !HUDevent.exists;
-			}	
-		}
-		
 		public static function fullScreen(e:Event = null):void
 		{	 
 			if (FlxG.stage.displayState == StageDisplayState.NORMAL)
@@ -402,9 +370,7 @@ package january
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
 				camera.target = cameraRails;
 				
-				// Update Positions of Static Objects
-				title.alignment = "center";
-				titleNote.x = (FlxG.width/2 - 2);
+				title.x = titleNote.x = FlxG.width/2 - 5;
 			}
 			
 		}

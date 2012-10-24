@@ -1,5 +1,7 @@
 package january
 {
+	import org.flixel.FlxG;
+	
 	final public class Helpers
 	{		
 		public static function flatten(arrays:Array):Array
@@ -46,6 +48,20 @@ package january
 		public static function pickFrom(... options:Array):*
 		{
 			return options[Math.round(Math.random()*(options.length - 1))];
+		}
+		
+		/** Will pull a random object from an array and return it. */
+		public static function randomPull(Objects:Array,StartIndex:uint=0,Length:uint=0):*
+		{
+			if(Objects != null)
+			{
+				var l:uint = Length;
+				if((l == 0) || (l > Objects.length - StartIndex))
+					l = Objects.length - StartIndex;
+				if(l > 0)
+					return Objects[StartIndex + uint(FlxG.random()*l)];
+			}
+			return null;
 		}
 		
 		/**

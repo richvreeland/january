@@ -13,13 +13,13 @@ package january.snowflakes
 			
 			_windY = 15;
 			_pointValue = 1;
-			_volume = Helpers.rand(0.25, 0.4);
+			_volume = Helpers.rand(0.15, 0.3);
 		}
 
 		public override function onLick():void
 		{
 			if (FlxG.score == 0)
-				_volume = 0.4;
+				_volume = 0.25;
 			
 			super.onLick();
 			

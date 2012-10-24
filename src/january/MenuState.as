@@ -9,7 +9,7 @@ package january
 	
 	public class MenuState extends FlxState
 	{
-		[Embed(source="../assets/art/flakes/key.png")] private var mouse : Class;
+		[Embed(source="../assets/art/cursor.png")] private var mouse : Class;
 		
 		private var _soundText	:FlxText;
 		private var _yesText	:FlxText;

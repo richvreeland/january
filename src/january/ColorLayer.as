@@ -15,7 +15,7 @@ package january
 		protected var _desiredAlpha:Number;
 		
 		/** Whether the instance of ColorLayer is on or not. */
-		protected var _layerOn:Boolean;
+		public var layerOn:Boolean;
 		
 		protected var _fillColor:uint;
 		
