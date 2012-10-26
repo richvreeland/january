@@ -52,6 +52,7 @@ package org.flixel
 		 */
 		public var autoDestroy:Boolean;
 
+
 		/**
 		 * Internal tracker for a Flash sound object.
 		 */
@@ -257,6 +258,7 @@ package org.flixel
 			_sound = new EmbeddedSound();
 			//NOTE: can't pull ID3 info from embedded sound currently
 			_looped = Looped;
+			autoDestroy = AutoDestroy;
 			updateTransform();
 			exists = true;
 			return this;
@@ -279,6 +281,7 @@ package org.flixel
 			_sound.addEventListener(Event.ID3, gotID3);
 			_sound.load(new URLRequest(SoundURL));
 			_looped = Looped;
+			autoDestroy = AutoDestroy;
 			updateTransform();
 			exists = true;
 			return this;

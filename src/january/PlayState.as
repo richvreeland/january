@@ -6,6 +6,7 @@ package january
 	import flash.geom.Rectangle;
 	
 	import january.colorlayers.*;
+	import january.music.*;
 	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
@@ -60,137 +61,115 @@ package january
 		
 		[Embed(source="../assets/art/cursor.png")] private static var note : Class;
 		
-		private static var title: FlxText;
-		private static var titleNote: FlxSprite;
+		public static var title: Title;
+		private static var endTitle: FlxText;
+		private static var endNote: FlxSprite;
 		
 		public static var fullScreenWidth: uint;
 		
 		override public function create():void
 		{					
-			FlxG.stage.removeEventListener(MouseEvent.CLICK, fullScreen);
-			
-			//	Kill Mouse, Initialize Score, Set Global Volume to 1.
+			FlxG.stage.removeEventListener(MouseEvent.CLICK, fullScreen);		
 			FlxG.mouse.hide();
 			FlxG.score = Global.SCORE_INIT;
-			FlxG.volume = 1;
+			FlxG.volume = 1;		
+			FlxG.playMusic(_ambience, 2); FlxG.music.fadeIn(2);		
+			FlxG.bgColor = 0xFFd8e3e5;	
 			
-			//	Play Background Audio
-			FlxG.playMusic(_ambience, 2);
-			FlxG.music.fadeIn(2);
-			
-			//	Set Background Color
-			FlxG.bgColor = 0xFFd8e3e5;
-			
-			//	Build Skymap		
-			_sky = new FlxSprite(0, 0, _skyImg);
-			_sky.scrollFactor.x = 0;
-			_sky.velocity.x = -2;
+			//	Build World		
+				_sky = new FlxSprite(0, 0, _skyImg);
+				_sky.scrollFactor.x = 0;
+				_sky.velocity.x = -2;
 			add(_sky);
-			
-			// Build Hills
-			_hills = new FlxSprite(270, 72, _hillsImg);
-			_hills.scrollFactor.x = 0.025;
-			add(_hills);
-			
-			//	Build Tilemap
-			ground = new FlxTilemap();
-			ground.loadMap(new _levelMap, _groundImg, 16);
-			ground.x = 0;
-			add(ground);
+				_hills = new FlxSprite(270, 72, _hillsImg);
+				_hills.scrollFactor.x = 0.025;
+			add(_hills);	
+				_backtrees = new FlxTilemap();
+				_backtrees.y = 89;
+				_backtrees.scrollFactor.x = 0.075;
+				_backtrees.loadMap(new _backtreeMap, _backtreeImg, 13, 7);
+			add(_backtrees);		
+				title = new Title();
+			add(title); 			
+				ground = new FlxTilemap();
+				ground.loadMap(new _levelMap, _groundImg, 16);
+				ground.x = 0;
+			add(ground);	
+				_trees = new FlxTilemap();
+				_trees.y = 83;
+				_trees.scrollFactor.x = 0.25;
+				_trees.loadMap(new _treeMap, _treeImg, 51, 13);
+			add(_trees);
 			
 			//	Set World Bounds, for optimization purposes.
 			FlxG.worldBounds.x = 180;
 			FlxG.worldBounds.width = ground.width;
 			FlxG.worldBounds.y = 78;
-			FlxG.worldBounds.height = FlxG.height - FlxG.worldBounds.y;
-			
-			//	Build Trees
-			_backtrees = new FlxTilemap();
-			_backtrees.y = 89;
-			_backtrees.scrollFactor.x = 0.075;
-			_backtrees.loadMap(new _backtreeMap, _backtreeImg, 13, 7);
-			add(_backtrees);
-			
-			_trees = new FlxTilemap();
-			_trees.y = 83;
-			_trees.scrollFactor.x = 0.25;
-			_trees.loadMap(new _treeMap, _treeImg, 51, 13);
-			add(_trees);				
+			FlxG.worldBounds.height = FlxG.height - FlxG.worldBounds.y;	
 			
 			// Add Feedback Text
-			textOutput = new Text();
-			add(textOutput);
+			textOutput = new Text(); add(textOutput);	
 			
 			// Draw Player
 			player = new Player();	add(player);
-
+			
 			//	Build Houses
-			_houseLeft = new FlxSprite(50, 16);
-			_houseLeft.loadGraphic(_houseImg,false,true);
-			_houseLeft.facing = FlxObject.LEFT;
+				_houseLeft = new FlxSprite(50, 16);
+				_houseLeft.loadGraphic(_houseImg,false,true);
+				_houseLeft.facing = FlxObject.LEFT;
 			add(_houseLeft);
-			houseRight = new FlxSprite(2768, 16, _houseImg);
+				houseRight = new FlxSprite(2768, 16, _houseImg);
 			add(houseRight);
-						
+			
 			// Create Snow
 			snow = new FlxGroup();	add(snow);
 			
 			// Add HUD
-			HUD.init();
-			add(HUD.keysData);
-			add(HUD.modeData);
-			add(HUD.noteData);
+			HUD.init(); add(HUD.keysData); add(HUD.modeData); add(HUD.noteData);
 			
 			// Create Backgrounds (keep order in tact for proper blending)				
 			haze   = new Haze();	add(haze);
 			night  = new Night();	add(night);
-			black  = new Black();	add(black);
+			black  = new Black();	add(black);	
 			
 			// Add Fireflies.
-			fireflies = new FlxGroup();	add(fireflies);
+			fireflies = new FlxGroup();	add(fireflies);	
 			
-//				residue = new Residue();
-//			add(residue);
-//			
 //				controls = new Controls();
-//			add(controls);
+//			add(controls);		
 			
 			// Demo End Layer
-				title = new FlxText(160, 53, 320, "fin");
-				title.setFormat("frucade", 8, 0xFFFFFFFF);
-				title.scrollFactor.x = 0;
-				title.visible = false;
-			add(title);
-			
-				titleNote = new FlxSprite(160, 70, note);
-				titleNote.scrollFactor.x = 0;
-				titleNote.visible = false;
-			add(titleNote);
+				endTitle = new FlxText(160, 53, 320, "fin");
+				endTitle.setFormat("frucade", 8, 0xFFFFFFFF);
+				endTitle.scrollFactor.x = 0;
+				endTitle.visible = false;
+			add(endTitle);			
+				endNote = new FlxSprite(160, 70, note);
+				endNote.scrollFactor.x = 0;
+				endNote.visible = false;
+			add(endNote);			
 			
 			// Create Camera and Camera Rails (Camera Follows Rails Object)													
 				cameraRails = new FlxSprite(Global.CAMERA_X_INIT + FlxG.width + 1, FlxG.height - 1);		
 				cameraRails.makeGraphic(1,1,0xFFFF0000);		
 				cameraRails.maxVelocity.x = 9;
 				cameraRails.visible = false;	
-			add(cameraRails);
-			
+			add(cameraRails);			
 				camera = new FlxCamera(0, 0, FlxG.width + 1, FlxG.height);
 				camera.setBounds(FlxG.worldBounds.x, 0, FlxG.worldBounds.width, FlxG.height);
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
 				camera.target = cameraRails;
-			add(camera);		
-			
+			add(camera);					
 			FlxG.resetCameras(camera);
 			
 			// Start Spawn Timer
 			_spawnTimer = new FlxDelay(Global.SPAWNRATE_INIT);
-			_spawnTimer.start();
 			
 			super.create();
 		}
 		
 		override public function update():void
-		{								
+		{											
 			// Spawn snowflakes when timer expires.
 			_spawnTimer.callback =
 				function():void
@@ -221,6 +200,9 @@ package january
 			
 			// Check for Player Entering House
 			if (player.x > houseRight.x + 5) enterHouse();
+			// Wait until player moves to spawn first snowflake.
+			if ((FlxG.keys.RIGHT || FlxG.keys.D) && FlxG.score == 0 && _spawnTimer.isRunning == false)
+				_spawnTimer.start();
 						
 			// Camera Behavior
 			cameraLogic();
@@ -250,8 +232,8 @@ package january
 					// demo end stuff
 					FlxG.music.fadeOut(0.01);
 					black.alphaUp(0.01);
-					title.x = titleNote.x = FlxG.width/2 - 5;
-					title.visible = titleNote.visible = true;
+					endTitle.x = endNote.x = FlxG.width/2 - 5;
+					endTitle.visible = endNote.visible = true;
 					snow.kill();
 					player.kill();
 					
@@ -321,6 +303,7 @@ package january
 			if (_outside == false)
 			{
 				cameraRails.x = FlxG.worldBounds.x;
+				cameraRails.velocity.x = 0;
 				player.x = _houseLeft.x + 185;
 				FlxG.play(_doorClose, 0.3, -1);
 				FlxG.music.fadeIn(1);
@@ -370,7 +353,7 @@ package january
 				camera.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
 				camera.target = cameraRails;
 				
-				title.x = titleNote.x = FlxG.width/2 - 5;
+				endTitle.x = endNote.x = FlxG.width/2 - 5;
 			}
 			
 		}

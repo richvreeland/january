@@ -531,7 +531,7 @@ package org.flixel
 			sound.volume = Volume;
 			sound.pan = Pan;
 			if(AutoPlay)
-				sound.play(true);
+				sound.play();
 			return sound;
 		}
 		
@@ -546,7 +546,7 @@ package org.flixel
 		 * 
 		 * @return	A <code>FlxSound</code> object.
 		 */
-		static public function play(EmbeddedSound:Class,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=true):FlxSound
+		static public function play(EmbeddedSound:Class,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=false):FlxSound
 		{
 			return FlxG.loadSound(EmbeddedSound,Volume,Pan,Looped,AutoDestroy,true);
 		}
@@ -562,7 +562,7 @@ package org.flixel
 		 * 
 		 * @return	A FlxSound object.
 		 */
-		static public function stream(URL:String,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=true):FlxSound
+		static public function stream(URL:String,Volume:Number=1.0,Pan:Number=0,Looped:Boolean=false,AutoDestroy:Boolean=false):FlxSound
 		{
 			return FlxG.loadSound(null,Volume,Pan,Looped,AutoDestroy,true,URL);
 		}

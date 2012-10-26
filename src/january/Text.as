@@ -2,7 +2,7 @@ package january
 {
 	import january.snowflakes.*;
 	import org.flixel.*;
-	import january.music.Playback;
+	import january.music.*;
 	
 		public class Text extends FlxText
 		{

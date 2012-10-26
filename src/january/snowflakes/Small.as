@@ -6,7 +6,7 @@ package january.snowflakes
 
 	public class Small extends Snowflake
 	{
-		[Embed(source="../assets/art/flakes/bloom_small.png")] private var sprite : Class;
+		[Embed(source="../assets/art/flakes/small.png")] private var sprite : Class;
 		
 		public function Small()
 		{			

@@ -1,5 +1,5 @@
 package january.music
-{
+{	
 	public class Playback
 	{
 		/** Used to instantiate Note.lastRecorded, and push to the playbackSequence. */

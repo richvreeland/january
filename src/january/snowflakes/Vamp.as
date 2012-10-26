@@ -16,6 +16,7 @@ package january.snowflakes
 			_pointValue = 1;
 			
 			addAnimation("default", [0,0,0,0,0,0,0,0,0,0,1,2,1], 12, true);
+			addAnimation("firefly", [3,3,3,3,3,3,3,3,3,3,4,5,4], 12, true);
 		}
 		
 		public override function onLick():void
@@ -28,7 +29,11 @@ package january.snowflakes
 		public override function update():void
 		{
 			super.update();
-			play("default");
+			
+			if (_licked == false)
+				play("default");
+			else
+				play("firefly");
 		}
 	}
 }

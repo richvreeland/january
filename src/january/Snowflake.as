@@ -1,8 +1,10 @@
 package january
 {
-	import flash.utils.getDefinitionByName;	
-	import january.snowflakes.*;
+	import flash.utils.getDefinitionByName;
+	
 	import january.music.*;
+	import january.snowflakes.*;
+	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -234,7 +236,7 @@ package january
 			}
 			
 			if (Playback.mode == true)	// REPLAY MODE
-			{
+			{						
 				FlxG.play(Playback.sequence[Playback.index] as Class, _volume, _pan);				
 				Note.lastAbsolute = Playback.sequence[Playback.index];			
 				Playback.index++;
@@ -425,11 +427,11 @@ package january
 				chordTones = [i.one1, i.fiv1, i.thr2];
 		
 			calculatePan();		
-			FlxG.play(chordTones[0], 0.15, 0);
+			FlxG.play(chordTones[0], 0.15, _pan);
 			FlxG.play(chordTones[1], 0.15,-1);
 			FlxG.play(chordTones[2], 0.15, 1);
 			if (chordTones[3] != null)
-				FlxG.play(chordTones[3], 0.15, _pan);		
+				FlxG.play(chordTones[3], 0.15, -1*_pan);		
 			HUD.logMode(chordTones);
 		}
 				
