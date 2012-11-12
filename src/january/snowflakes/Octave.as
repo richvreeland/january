@@ -1,21 +1,33 @@
 package january.snowflakes
 {
 	import january.*;
+	
 	import org.flixel.*;
 	
 	public class Octave extends Snowflake
 	{	
 		[Embed(source="../assets/art/flakes/octave.png")] private var sprite: Class;
 		
+		/* Score to introduce this flake at. */
+		public static const INTRODUCE_AT: int = 10;
+		/** Default volume level for the octave tone (not the default note). */
+		public static const VOLUME: Number = Global.NOTE_MAX_VOLUME * 0.33;
+		/** The probability weight for spawning this flake type. */
+		public static const WEIGHT: Number = 3.5;
+		
 		public function Octave():void
 		{
 			super();
 			
-			loadGraphic(sprite, false, false, 3, 3);
+			loadGraphic(sprite, false, false, 5, 5);
+			offset.x = 1;
+			offset.y = 1;
 			
-			_windY = 14;
-			_pointValue = 1;
-			_volume = Helpers.rand(0.1, 0.25);
+			windY = 14;
+			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			
+			addAnimation("default", [0],0,false);
+			addAnimation("firefly", [1],0,false);
 		}
 		
 		public override function onLick():void
@@ -24,6 +36,16 @@ package january.snowflakes
 			
 			playNote();	
 			playOctave();				
+		}
+		
+		public override function update():void
+		{
+			super.update();
+			
+			if (licked == false)
+				play("default");
+			else
+				play("firefly");
 		}
 	}
 }

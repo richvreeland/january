@@ -962,8 +962,10 @@ package org.flixel
 				ObjectOrGroup1 = FlxG.state;
 			if(ObjectOrGroup2 === ObjectOrGroup1)
 				ObjectOrGroup2 = null;
+			
 			FlxQuadTree.divisions = FlxG.worldDivisions;
-			var quadTree:FlxQuadTree = new FlxQuadTree(FlxG.worldBounds.x,FlxG.worldBounds.y,FlxG.worldBounds.width,FlxG.worldBounds.height);
+			var quadTree:FlxQuadTree = FlxQuadTree.quadTreePool.getNew();
+			quadTree.init(FlxG.worldBounds.x,FlxG.worldBounds.y,FlxG.worldBounds.width,FlxG.worldBounds.height);
 			quadTree.load(ObjectOrGroup1,ObjectOrGroup2,NotifyCallback,ProcessCallback);
 			var result:Boolean = quadTree.execute();
 			quadTree.destroy();

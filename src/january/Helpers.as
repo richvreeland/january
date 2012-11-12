@@ -1,50 +1,25 @@
 package january
 {
+	import org.flexunit.runner.manipulation.filters.AbstractFilter;
 	import org.flixel.FlxG;
 	
 	final public class Helpers
-	{		
-		public static function flatten(arrays:Array):Array
-		{
-			var result:Array = [];
-			for(var i:int = 0; i < arrays.length; i++)
-			{
-				result = result.concat(arrays[i]);
-			}
-			return result;
-		}
-		
-		public static function removeItemArray(theArray:Array, theItem:*):Array
-		{
-			for(var i:int=0; i < theArray.length; i++)
-			{
-				if(theArray[i] == theItem)
-				{
-					theArray.splice(i,1);
-					i-=1;
-				}
-			}
-			
-			return theArray;
-		}
-		
+	{	
+		/** Returns a random Number within a range. */
 		public static function rand(minNumber:Number, maxNumber:Number):Number
 		{
-			// Returns a random Number within a range.
 			var result:Number = Math.random()*(maxNumber - minNumber) + minNumber;
 			return result;
 		}
 		
+		/** Returns a random integer within a range. */
 		public static function randInt(minInt:int, maxInt:int):int
 		{
-			// Returns a random integer within a range.
 			var result:int = Math.round(Math.random()*(maxInt - minInt) + minInt);
 			return result;
 		}
 		
-		/*
-		* Pick a random choice from a series of options
-		*/
+		/** Pick a random choice from a series of options. */
 		public static function pickFrom(... options:Array):*
 		{
 			return options[Math.round(Math.random()*(options.length - 1))];
@@ -64,9 +39,7 @@ package january
 			return null;
 		}
 		
-		/**
-		 * Generate a random boolean result based on the chance value.
-		 */
+		/** Generate a random boolean result based on the chance value. */
 		public static function chanceRoll(chance:int = 50):Boolean
 		{
 			if (chance <= 0)
@@ -82,9 +55,7 @@ package january
 			}
 		}
 		
-		/**
-		 * Takes an array of weights, and returns a random index based on the weights
-		 */
+		/** Takes an array of weights, and returns a random index based on the weights. */
 		public static function weightedChoice(weights:Array):int
 		{
 			// add weights
@@ -107,8 +78,6 @@ package january
 			
 			// if random num is exactly = weightsTotal
 			return weights.length - 1;
-		}
-		
+		}	
 	}
-	
 }

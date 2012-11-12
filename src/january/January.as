@@ -10,7 +10,7 @@ package january
 	{
 		public static const INIT_WIDTH:		uint = 320;
 		public static const INIT_HEIGHT:	uint = 120;
-		public static const INIT_STATE:		Class = MenuState;
+		public static const INIT_STATE:		Class = Menu;
 		public static const INIT_ZOOM:		Number = 3;	
 		
 		public function January()
@@ -30,7 +30,7 @@ package january
             super.create(FlashEvent);
  
 			// Full Screen Listeners
-			FlxG.stage.addEventListener(Event.RESIZE, PlayState.resize);
+			FlxG.stage.addEventListener(Event.RESIZE, Game.resize);
         }
 	}
 }

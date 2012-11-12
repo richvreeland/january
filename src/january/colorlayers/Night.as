@@ -9,7 +9,7 @@ package january.colorlayers
 		{
 			super();
 			
-			_fillColor = 0xFF544F63;
+			fillColor = 0xFF544F63;
 			blend = "multiply";
 		}
 		

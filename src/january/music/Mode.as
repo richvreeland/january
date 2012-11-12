@@ -12,13 +12,13 @@ package january.music
 		public static const	MIXOLYDIAN	: Object = {name: "mixolydian", majorPos: 5, minorPos: 7};
 		public static const	AEOLIAN		: Object = {name: "aeolian", 	majorPos: 6, minorPos: 1};
 		/** Array of all the modes. */
-		public static const	DATABASE: Array /* of Object */ = [IONIAN, DORIAN, LYDIAN, MIXOLYDIAN, AEOLIAN];
+		public static const	DATABASE	: Array /* of Object */ = [IONIAN, DORIAN, LYDIAN, MIXOLYDIAN, AEOLIAN];
 		/** Number used with mode array to select and identify the current mode. */
-		public static var index: int = DATABASE[Helpers.randInt(0, DATABASE.length - 1)];
+		public static var index			: int = DATABASE[Helpers.randInt(0, DATABASE.length - 1)];
 		/** The current mode, and the string equivalent of modeIndex. */
-		public static var current: String = DATABASE[index].name;
+		public static var current		: String = DATABASE[index].name;
 		/** The previous mode. */
-		public static var previous: String = current;
+		public static var previous		: String = current;
 		
 		public static function change():void
 		{
@@ -29,6 +29,7 @@ package january.music
 			previous = current;
 			current = DATABASE[index].name;
 			Intervals.updated = false;
+			Intervals.populate();
 			HUD.logMode();
 		}
 	}

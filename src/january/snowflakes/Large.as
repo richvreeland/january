@@ -5,7 +5,10 @@ package january.snowflakes
 	
 	public class Large extends Snowflake
 	{
-		[Embed(source="../assets/art/flakes/large.png")] private var sprite : Class;
+		[Embed(source="../assets/art/flakes/large.png")] private var sprite: Class;
+		
+		/** The probability weight for spawning this flake type. */
+		public static const WEIGHT: Number = 10;
 		
 		public function Large()
 		{
@@ -15,19 +18,15 @@ package january.snowflakes
 			offset.x = 1;
 			offset.y = 1;
 			
-			_windY = 15;
-			_pointValue = 1;
-			_volume = Helpers.rand(0.15, 0.3);
+			windY = 15;
+			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.5, Global.NOTE_MAX_VOLUME);
 			
 			addAnimation("default",[0],0,false);
 			addAnimation("firefly",[1],0,false);
 		}
 
 		public override function onLick():void
-		{
-			if (FlxG.score == 0)
-				_volume = 0.25;
-			
+		{			
 			super.onLick();
 			
 			playNote();
@@ -37,7 +36,7 @@ package january.snowflakes
 		{
 			super.update();
 			
-			if (_licked == false)
+			if (licked == false)
 				play("default");
 			else
 				play("firefly");

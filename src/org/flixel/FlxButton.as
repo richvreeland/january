@@ -266,10 +266,13 @@ package org.flixel
 			}
 			
 			//Then pick the appropriate frame of animation
-			if((status == HIGHLIGHT) && _onToggle)
-				frame = NORMAL;
-			else
-				frame = status;
+			if(_animations.length < 1)
+			{
+				if((status == HIGHLIGHT) && _onToggle)
+					frame = NORMAL;
+				else
+					frame = status;
+			}
 		}
 		
 		/**

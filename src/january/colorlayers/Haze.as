@@ -9,7 +9,7 @@ package january.colorlayers
 		{
 			super();
 			
-			_fillColor = 0xFF999999;
+			fillColor = 0xFF999999;
 		}
 		
 		override public function onLick():void

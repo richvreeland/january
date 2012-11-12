@@ -10,6 +10,8 @@ package january
 	
 	        /** The number of seconds to hold the text before it starts to fade. */
 	        private static var _lifespan: Number;
+			/** The gutter size, used to keep text off screen edges. */
+			public static const GUTTER: int = 1;
 			    
 	        public function Text():void
 			{
@@ -32,8 +34,13 @@ package january
 			 */			
 			public function onLick(SnowRef: Snowflake):void
 			{											
+				// Prevent numbers from showing up after entering the house.
+				if (Global.newGame == true)
+					kill();
+				
 				var _text: String = "";
 				
+				// Store the number of the current place in the playback sequence when appropriate.
 				if (Playback.mode == true && SnowRef.type != "Vamp")
 				{
 					if (Playback.index != 0)
@@ -42,42 +49,35 @@ package january
 						_text = Playback.sequence.length.toString();
 				}
 				
-				if (Global.newGame == true)
-					_text = "";
-				else if (FlxG.score == 1)
-					_text = "January";
-				
 				// Show the new text feedback.
 				if (_text != "")
 				{
 					_lifespan = Global.ALPHA_LIFESPAN;        
 					text = _text;
-					alpha = 1;
-					
+					alpha = 1;	
 					maxVelocity.y = 0;
-					drag.y = 0;	
-					
+					drag.y = 0;					
 					x = SnowRef.x
 					y = SnowRef.y - 10;
 					
-					if (PlayState.player.facing == LEFT)
+					if (Game.player.facing == LEFT)
 					{
 						x -= realWidth + 5;
 						
 						// Check Bounds on Left Side
-						if (PlayState.player.x - realWidth < Global.textGutter + PlayState.camera.scroll.x)
-							x = PlayState.camera.scroll.x + Global.textGutter;	
+						if (Game.player.x - realWidth < GUTTER + Camera.lens.scroll.x)
+							x = Camera.lens.scroll.x + GUTTER;	
 					}
 					else // facing == RIGHT
 					{
 						x += 5;
 						
 						// Check Bounds on Right Side
-						if (PlayState.player.x + realWidth > PlayState.cameraRails.x - Global.textGutter)
-							x = PlayState.cameraRails.x - Global.textGutter - realWidth;
+						if (Game.player.x + realWidth > Camera.rails.x - GUTTER)
+							x = Camera.rails.x - GUTTER - realWidth;
 						
-						if (PlayState.player.x + realWidth > PlayState.houseRight.x)
-							x = PlayState.houseRight.x - Global.textGutter - realWidth;
+						if (Game.player.x + realWidth > Game.houseRight.x)
+							x = Game.houseRight.x - GUTTER - realWidth;
 					}
 				}				
 			}

@@ -2,34 +2,27 @@ package january
 {
 	import org.flixel.*;
 	
-	/** This class lets you perform flashes and fades, similar to FlxG.flash / FlxG.fade.
-	 * BUT, you can do it from ANYWHERE in the draw order!
-	 * 
-	 */
+	/** Color Layers are sprites whose alpha values can be faded from anywhere in the draw order. */
 	public class ColorLayer extends FlxSprite
 	{
 		/** The duration of the given effect. */
-		protected var _duration:Number;
-		
+		protected var duration		: Number;
 		/** The desired alpha value when the effect is done, on a scale of 0 - 1. */
-		protected var _desiredAlpha:Number;
-		
+		protected var desiredAlpha	: Number;
 		/** Whether the instance of ColorLayer is on or not. */
-		public var layerOn:Boolean;
+		public 	  var layerOn		: Boolean;
+		/** Color to fill the layer with. */
+		protected var fillColor		: uint;
+		/** How long to wait before callback function. */
+		protected var callbackDelay	: Number = 0;
+		/** Callback timer. */
+		protected var callbackTimer	: Number = 0;
+		/** Callback Function called on complete of fade. */
+		protected var alphaUpOnComplete:Function;
+		/** Callback Function called on complete of flash. */
+		protected var alphaDownOnComplete:Function;
 		
-		protected var _fillColor:uint;
-		
-		public var start:Boolean;
-		
-		protected var _callbackDelay:Number = 0;
-		protected var _callbackTimer:Number = 0;
-		
-		protected var _fadeOnComplete:Function;
-		protected var _flashOnComplete:Function;
-		
-		/**
-		 * Create a new ColorLayer and set it to fill the screen, but hide it.
-		 */
+		/** Create a new ColorLayer and set it to fill the screen, but hide it. */
 		public function ColorLayer():void
 		{
 			super();
@@ -39,71 +32,65 @@ package january
 			exists = false;
 		}
 		
-		public function onLick():void
-		{			
-		}
+		/** Override this function in subclasses to use onLick event listener. */
+		public function onLick():void {}
 		
-		/**
-		 * fade() is a color fade over time, with support for alpha and blending
-		 *  
-		 * @param Color			Starting color of the fade effect.
-		 * @param Duration		Duration of the fade effect.
-		 * @param Blend			Set a blend mode, eg. 'multiply'
-		 */		
+		/**	
+		 * Fades the alpha value up, in the direction of 0 --> 1
+		 * 
+		 * @param Duration
+		 * @param DesiredAlpha
+		 * @param OnComplete
+		 * @param CallbackDelay
+		 */	
 		final public function alphaUp (Duration: Number = 1, DesiredAlpha: Number = 1, OnComplete: Function = null, CallbackDelay: Number = 0): void
 		{
-			fill(_fillColor);
-			_duration = Duration;
-			_desiredAlpha = DesiredAlpha;
-			_fadeOnComplete = OnComplete;
-			_callbackDelay = CallbackDelay;
-		
+			fill(fillColor);
+			duration = Duration;
+			desiredAlpha = DesiredAlpha;
+			alphaUpOnComplete = OnComplete;
+			callbackDelay = CallbackDelay;
 			exists = true;
 		}
 		
 		/**
-		 * flash() lets you flash a color, which fades over time. Also supports blend modes.
-		 *  
-		 * @param Color			Starting color of the flash effect.
-		 * @param Duration		Duration of the flash effect.
-		 * @param Blend			Set a blend mode, eg. 'multiply'
-		 */	
+		 * Fades the alpha value down, in the direction of 1 --> 0
+		 * 
+		 * @param Duration
+		 * @param DesiredAlpha
+		 * @param OnComplete
+		 * @param CallbackDelay
+		 */		
 		final public function alphaDown (Duration: Number = 1, DesiredAlpha: Number = 0, OnComplete: Function = null, CallbackDelay: Number = 0): void
 		{
-			fill(_fillColor);
-			_duration = Duration;
-			_desiredAlpha = DesiredAlpha;
-			_flashOnComplete = OnComplete;
-			_callbackDelay = CallbackDelay;
-
+			fill(fillColor);
+			duration = Duration;
+			desiredAlpha = DesiredAlpha;
+			alphaDownOnComplete = OnComplete;
+			callbackDelay = CallbackDelay;
 			exists = true;
 		}
 		
-		/**
-		 * Check for alpha value. If it's reach it's desired result, stop the effect. 
-		 */
+		/** Check for alpha value. If it's reach it's desired result, stop the effect. */
 		override public function update():void
 		{			
-			if (alpha > _desiredAlpha)
-				alpha -= FlxG.elapsed/_duration;
-			else if (alpha < _desiredAlpha)
-				alpha += FlxG.elapsed/_duration;
+			if (alpha > desiredAlpha)
+				alpha -= FlxG.elapsed/duration;
+			else if (alpha < desiredAlpha)
+				alpha += FlxG.elapsed/duration;
 			else
 			{								
-				_callbackTimer += FlxG.elapsed;
+				callbackTimer += FlxG.elapsed;
 				
-				if (_callbackTimer > _callbackDelay)
+				if (callbackTimer > callbackDelay)
 				{
-					if (_flashOnComplete != null)
-						_flashOnComplete();
-					if (_fadeOnComplete != null)
-						_fadeOnComplete();
-					_callbackTimer = _callbackDelay;
+					if (alphaDownOnComplete != null)
+						alphaDownOnComplete();
+					if (alphaUpOnComplete != null)
+						alphaUpOnComplete();
+					callbackTimer = callbackDelay;
 				}
-			}
-			
+			}	
 		}
-		
 	}
-	
 }

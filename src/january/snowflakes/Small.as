@@ -6,7 +6,7 @@ package january.snowflakes
 
 	public class Small extends Snowflake
 	{
-		[Embed(source="../assets/art/flakes/small.png")] private var sprite : Class;
+		[Embed(source="../assets/art/flakes/small.png")] private var sprite: Class;
 		
 		public function Small()
 		{			
@@ -16,9 +16,8 @@ package january.snowflakes
 			offset.y = 1;
 			offset.x = 1;
 			
-			_windY = 10;
-			_pointValue = 1;
-			_volume = Helpers.rand(0.1, 0.25);
+			windY = 10;
+			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
 			
 			addAnimation("default",[0],0,false);
 			addAnimation("firefly",[1],0,false);
@@ -35,7 +34,7 @@ package january.snowflakes
 		{
 			super.update();
 			
-			if (_licked == false)
+			if (licked == false)
 				play("default");
 			else
 				play("firefly");

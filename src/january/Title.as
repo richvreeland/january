@@ -34,16 +34,14 @@ package january
 					lifespan -= FlxG.elapsed;
 					if (alpha > 1)
 						alpha = 1;
+					if (lifespan <= 0)
+						lifespan = 0;
 				}
 				else
-				{
-//					maxVelocity.y = 25;
-//					acceleration.y = 25;
 					alpha -= FlxG.elapsed/4;
-				}
-				
-				if (alpha < 0)
-					kill();
+						
+				if (alpha <= 0)
+					kill();				
 			}
 			
 			super.update();

@@ -1,18 +1,18 @@
 package january
 {
-	import org.flixel.*;
 	import january.music.*;
+	import org.flixel.*;
 	
 	public class HUD
 	{
 		/** The text sprite that holds note name, volume, pan, etc. */
-		public static var noteData: FlxText;
+		public static var 	noteData : FlxText;
 		/** The text sprite that holds mode type, chord tones, etc. */
-		public static var modeData: FlxText;
+		public static var 	modeData : FlxText;
 		/** The text sprite that holds key name, key quality, etc. */
-		public static var keysData: FlxText;
+		public static var 	keysData : FlxText;
 		/** The font used for HUD objects. */
-		public static const FONT: String = "frucade";
+		public static const FONT	 : String = "frucade";
 		
 		/** Sets up HUD! does everything but add it to the state. */
 		public static function init():void
@@ -20,16 +20,30 @@ package january
 			noteData = new FlxText(6, -2, 256, "Note: ");
 			modeData = new FlxText(2, 8, 256, "Event: ");
 			keysData = new FlxText(11, 18, 256, "Key: ");
+			Game.midiButton.x = FlxG.width - Game.midiButton.width - 3;
+			Game.midiButton.y = 3;
 			noteData.scrollFactor.x = modeData.scrollFactor.x = keysData.scrollFactor.x = 0;
 			noteData.font = modeData.font = keysData.font = FONT;
-			noteData.exists	= modeData.exists = keysData.exists = false;			
+			noteData.exists = modeData.exists = keysData.exists = false;			
 		}
 		
 		/** Turns HUD on or off. */ 
 		public static function toggle():void
 		{
-			if(FlxG.keys.justPressed("H") == true)
-				keysData.exists = noteData.exists = modeData.exists = !keysData.exists;
+			// Press H to Toggle HUD.
+			if(FlxG.keys.justPressed("H"))		
+				noteData.exists = modeData.exists = keysData.exists = !keysData.exists;
+			
+			// Press M to Toggle MIDI Save Button.
+			if(FlxG.keys.justPressed("M"))
+			{
+				if (FlxG.mouse.visible)
+					FlxG.mouse.hide();
+				else
+					FlxG.mouse.show();
+				
+				Game.midiButton.exists = !Game.midiButton.exists;
+			}
 		}
 		
 		/**
@@ -37,7 +51,6 @@ package january
 		 * 
 		 * @param volume	Volume of note to be logged.
 		 * @param pan		Pan position of note to be logged.
-		 * 
 		 */		
 		public static function logNote(volume:Number, pan:Number):void
 		{		
@@ -66,7 +79,6 @@ package january
 				var chordName: String = "";
 				for (var i:int = 0; i <= chordTones.length - 1; i++)
 				{
-					FlxG.log(chordTones[i]);
 					var actualName: String = String(chordTones[i]);
 					actualName = actualName.slice(12);
 					actualName = actualName.slice(0,-1);
@@ -78,12 +90,7 @@ package january
 			}
 		}
 		
-		/**
-		 * Logs Key Data to HUD.
-		 *  
-		 * @param currentKey	The current key.
-		 * 
-		 */		
+		/** Logs Key Data to HUD. */		
 		public static function logKey():void
 		{
 			keysData.text = "Key: " + Key.current;

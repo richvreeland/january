@@ -7,18 +7,23 @@ package january.snowflakes
 	
 	public class Transpose extends Snowflake
 	{	
-		[Embed(source="../assets/art/flakes/key.png")] private var sprite : Class;
+		[Embed(source="../assets/art/flakes/transpose.png")] private var sprite : Class;
+		
+		/* Score to introduce this flake at. */
+		public static const INTRODUCE_AT: int = 100;
 		
 		public function Transpose()
 		{
 			super();
 			
-			loadGraphic(sprite, true, false, 5, 6);
+			loadGraphic(sprite, true, false, 5, 8);
+			offset.y = 1;
 			
-			_windY = 15;
-			_pointValue = 1;
+			windY = 15;
 			
 			addAnimation("default", [0,1,2,3,4,3,2,1], 3, true);
+			
+			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
 		}
 		
 		public override function onLick():void
@@ -27,6 +32,7 @@ package january.snowflakes
 			
 			Mode.change();
 			Key.change();
+			playNote();
 			playChord();
 		}
 		

@@ -51,6 +51,9 @@ package org.flixel
 		 * Whether to call destroy() when the sound has finished.
 		 */
 		public var autoDestroy:Boolean;
+		
+		/** Helper for determining what class a given FlxSound object is associated with. */
+		public var classType:Class;
 
 
 		/**
@@ -179,7 +182,7 @@ package org.flixel
 		 * Handles fade out, fade in, panning, proximity, and amplitude operations each frame.
 		 */
 		override public function update():void
-		{
+		{			
 			if(_position != 0)
 				return;
 			
@@ -256,6 +259,7 @@ package org.flixel
 			stop();
 			createSound();
 			_sound = new EmbeddedSound();
+			classType = EmbeddedSound;
 			//NOTE: can't pull ID3 info from embedded sound currently
 			_looped = Looped;
 			autoDestroy = AutoDestroy;
