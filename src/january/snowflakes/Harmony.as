@@ -1,6 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
+	import january.music.*;
 	
 	public class Harmony extends Snowflake
 	{	
@@ -8,6 +9,8 @@ package january.snowflakes
 		
 		/* Score to introduce this flake at. */
 		public static const INTRODUCE_AT: int = 25;
+		/** Default volume level for the harmony tone (not the default note). */
+		public static const VOLUME: Number = Note.MAX_VOLUME * 0.33;
 		
 		public function Harmony()
 		{
@@ -18,7 +21,7 @@ package january.snowflakes
 			offset.y = 1;
 			
 			windY = 13;
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 			
 			addAnimation("default", [0,0,0,0,0,0,0,0,1,0,1], 6, true);
 			addAnimation("firefly", [3,2,3,2,2,2,2,2,2,2,2], 6, true);

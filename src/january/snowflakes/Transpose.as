@@ -2,7 +2,6 @@ package january.snowflakes
 {
 	import january.*;
 	import january.music.*;
-	
 	import org.flixel.plugin.photonstorm.*;
 	
 	public class Transpose extends Snowflake
@@ -23,7 +22,7 @@ package january.snowflakes
 			
 			addAnimation("default", [0,1,2,3,4,3,2,1], 3, true);
 			
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 		}
 		
 		public override function onLick():void

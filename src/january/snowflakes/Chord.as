@@ -10,7 +10,7 @@ package january.snowflakes
 		/* Score to introduce this flake at. */
 		public static const INTRODUCE_AT: int = 50;
 		/** Default volume level for Chord Tones. */
-		public static const VOLUME: Number = Global.NOTE_MAX_VOLUME * 0.5;
+		public static const VOLUME: Number = Note.MAX_VOLUME * 0.5;
 		
 		public function Chord()
 		{
@@ -25,7 +25,7 @@ package january.snowflakes
 			addAnimation("default", [0,1,2,3], 3, true);
 			addAnimation("licked" , [7,6,5,4], 3, true);
 			
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 		}
 		
 		public override function onLick():void

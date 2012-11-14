@@ -1,28 +1,31 @@
 package january.music
 {
-	import january.HUD;
-	import january.Helpers;
+	import january.*;
+	import org.flixel.*
 	import org.flixel.plugin.photonstorm.FlxMath;
 
 	public class Key
 	{		
 		/* Musical keys, stored in Arrays. */
-		public static const C_MAJOR		: Array = ["C Major", Note.C1, Note.D1, Note.E1, Note.F1, Note.G1, Note.A1, Note.B1, Note.C2, Note.D2, Note.E2, Note.F2, Note.G2, Note.A2, Note.B2, Note.C3, Note.D3, Note.E3, Note.F3, Note.G3, Note.A3, Note.B3, Note.C4, Note.D4, Note.E4, Note.F4, Note.G4, Note.A4, Note.B4];
-		public static const C_MINOR		: Array = ["C Minor", Note.C1, Note.D1, Note.Ds1, Note.F1, Note.G1, Note.Gs1, Note.As1, Note.C2, Note.D2, Note.Ds2, Note.F2, Note.G2, Note.Gs2, Note.As2, Note.C3, Note.D3, Note.Ds3, Note.F3, Note.G3, Note.Gs3, Note.As3, Note.C4, Note.D4, Note.Ds4, Note.F4, Note.G4, Note.Gs4, Note.As4]
+		public static const C_MAJOR		: Array = ["C Major", C1, D1, E1, F1, G1, A1, B1, C2, D2, E2, F2, G2, A2, B2, C3, D3, E3, F3, G3, A3, B3, C4, D4, E4, F4, G4, A4, B4];
+		public static const C_MINOR		: Array = ["C Minor", C1, D1, Ds1, F1, G1, Gs1, As1, C2, D2, Ds2, F2, G2, Gs2, As2, C3, D3, Ds3, F3, G3, Gs3, As3, C4, D4, Ds4, F4, G4, Gs4, As4]
 		/** Array of all the keys. */
 		public static const DATABASE	: Array /* of Array */ = [C_MAJOR, C_MINOR];
 		/** Number used with key array to select and identify the current key. */
-		public static var index			: int = Helpers.randInt(0, DATABASE.length - 1);
+		public static var index			: int = Helper.randInt(0, DATABASE.length - 1);
 		/** The current key, and the string equivalent of keyIndex. */
 		public static var current		: String = DATABASE[index][0];
 		/** Whether or not the key has been just changed. */
 		public static var justChanged	: Boolean;
+		
+		/** Array of all possible key letters. */
+		public static const LETTERS: Array = ["C", "D", "E", "F", "G", "A", "B", "C"];
 	
 		public static function change():void
 		{
-			var newIndex:int = Helpers.randInt(0, DATABASE.length - 1);
+			var newIndex:int = Helper.randInt(0, DATABASE.length - 1);
 			while (newIndex == index)
-				newIndex = Helpers.randInt(0, DATABASE.length - 1);			
+				newIndex = Helper.randInt(0, DATABASE.length - 1);			
 			index = newIndex;
 			current = DATABASE[index][0];
 			Intervals.updated = false;
@@ -47,7 +50,16 @@ package january.music
 			
 			justChanged = true;
 			
-			HUD.logKey();
+			HUD.logMode();
+		}
+		
+		public static function toggle():void
+		{
+			if (FlxG.keys.justPressed("K"))
+			{
+				change();
+				Game.secretFeedback.show(HUD.modeName);
+			}
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
+	import january.music.*;
 	
 	import org.flixel.*;
 	
@@ -11,7 +12,7 @@ package january.snowflakes
 		/* Score to introduce this flake at. */
 		public static const INTRODUCE_AT: int = 10;
 		/** Default volume level for the octave tone (not the default note). */
-		public static const VOLUME: Number = Global.NOTE_MAX_VOLUME * 0.33;
+		public static const VOLUME: Number = Note.MAX_VOLUME * 0.33;
 		/** The probability weight for spawning this flake type. */
 		public static const WEIGHT: Number = 3.5;
 		
@@ -24,7 +25,7 @@ package january.snowflakes
 			offset.y = 1;
 			
 			windY = 14;
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 			
 			addAnimation("default", [0],0,false);
 			addAnimation("firefly", [1],0,false);

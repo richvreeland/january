@@ -1,5 +1,7 @@
 package january.music
 {	
+	import january.*;
+	
 	public class Playback
 	{
 		/** Used to instantiate Note.lastRecorded, and push to the playbackSequence. */
@@ -10,5 +12,7 @@ package january.music
 		public static var index	   : int = 0;		
 		/** Whether playbackSequence is being looped through */
 		public static var mode	   : Boolean = false;
+		/** The text sprite used to display number feedback. */
+		public static var numbers: Text;
 	}
 }

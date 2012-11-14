@@ -1,8 +1,10 @@
 package january
 {
 	import flash.utils.getDefinitionByName;
+	
 	import january.music.*;
 	import january.snowflakes.*;
+	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -21,18 +23,23 @@ package january
 		// NON-MUSIC DEFINITIONS ///////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
+		/** The default color for fireflies in Record mode. */
+		private static const RECORD_COLOR: uint = 0xFA0013;
+		/** The default color for fireflies in Playback mode. */
+		private static const PLAYBACK_COLOR: uint = 0x64E000;
+		
 		/** The type of snowflake in question. */
-		public var type: String;
+		public var type: String = "";
 		/** Type of the last licked snowflake. */
-		protected static var lastLickedType: String;
+		private static var lastLickedType: String;
 		/** Horizontal modifier for snowflake movement. */
-		protected var windX: int;
+		protected var windX: int = 0;
 		/** Vertical modifier for snowflake movement. */
-		protected var windY: int;
+		protected var windY: int = 0;
 		/** Whether snowflake is a firefly or not, determined by whether it has been licked. */
-		protected var licked: Boolean;
+		protected var licked: Boolean = false;
 		/** The number of seconds to hold the firefly before it starts to fade. */
-		protected var alphaLifespan: Number;
+		protected var alphaLifespan: Number = 0;
 		
 		// Snowflake spawning probabilities
 		private static var flakes: Array  = ["Small", "Large", "Octave", "Harmony", "Chord"	, "Vamp", "Transpose"];
@@ -55,7 +62,7 @@ package january
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var flakeID: String;
 			if (FlxG.score > 1)
-				flakeID = flakes[Helpers.weightedChoice(weights)];
+				flakeID = flakes[Helper.weightedChoice(weights)];
 			else if (FlxG.score == 1)
 				flakeID = "Small";
 			else
@@ -68,13 +75,13 @@ package january
 		}
 		
 		/** Spawns snowflakes. */
-		protected function spawn(flakeType: String, licked: Boolean = false, X: Number = 0, Y: Number = 0):void
+		protected function spawn(flakeType: String, firefly: Boolean = false, X: Number = 0, Y: Number = 0):void
 		{															
-			if (licked == false)
+			if (firefly == false)
 			{
 				// POSITION
 				if (FlxG.score > 0)
-					x = Helpers.randInt(Camera.lens.scroll.x, Camera.rails.x + 60);
+					x = Helper.randInt(Camera.lens.scroll.x, Camera.anchor.x + 60);
 				else
 					x = Camera.lens.scroll.x + FlxG.width/2;			
 				y = height * -1;
@@ -93,14 +100,14 @@ package january
 				
 				// COLOR
 				if (Playback.mode == true)
-					color = Global.PLAYBACK_COLOR;
+					color = PLAYBACK_COLOR;
 				else
-					color = Global.RECORD_COLOR;
+					color = RECORD_COLOR;
 				
 				// OPACITY
 				flicker(0.75);
 				
-				alphaLifespan = Global.ALPHA_LIFESPAN;
+				alphaLifespan = 1;
 				if (Game.night.layerOn == true)
 				{
 						alpha = Game.night.alpha;	
@@ -111,9 +118,8 @@ package january
 					alpha = 0;
 				
 				// TEXT OUTPUT
-				Game.textOutput.onLick(this);
-			}
-			
+				Playback.numbers.onLick(this);
+			}			
 			type = flakeType;
 			exists = true;
 		}
@@ -179,7 +185,7 @@ package january
 			FlxG.score++;
 			
 			if (type != "Small")
-				Global.scores[type]++;
+				Game.scores[type]++;
 			
 			// Gradually introduce flakes
 			if (FlxG.score >= Transpose.INTRODUCE_AT)	weights[6] = 0.5;	// Transpose
@@ -188,8 +194,8 @@ package january
 			if (FlxG.score >= Harmony.INTRODUCE_AT)		weights[3] = 3.5;	// Harmony
 			if (FlxG.score >= Octave.INTRODUCE_AT)		weights[2] = 3.5;	// Octave
 			
-			// Increase Flake Probability if Player Keeps Licking that type. Excludes Small, Large, and Transpose Flakes
-			for (var i:int = 2; i <= 5; i++)
+			// Increase Flake Probability if Player Keeps Licking that type. only Harmony and Octave Flakes
+			for (var i:int = 2; i <= 3; i++)
 			{
 				// Increment probability by .05%
 				if (type == flakes[i])
@@ -236,7 +242,7 @@ package january
 		/** Determines which kind of note to play. */
 		final protected function playNote():void
 		{									
-			calculatePan();
+			pan = Helper.rand(-1, 1);
 		
 			var intervals:Object = Intervals.loadout;
 			
@@ -252,6 +258,7 @@ package january
 					Playback.index = 0;
 				
 				MIDI.log(Note.lastAbsolute, volume);
+				HUD.logNote(volume, pan);
 			}
 			else if (Note.lastRecorded != null)	// RECORD MODE
 			{						
@@ -260,16 +267,14 @@ package january
 			}
 			else // INITIAL SNOWFLAKE
 			{
-				Intervals.populate();
-				Note.initial = Helpers.pickFrom(Intervals.loadout.one2, Intervals.loadout.one3);
-				FlxG.play(Note.initial, volume);
-				Note.lastRecorded = Note.initial;
-				Note.lastAbsolute = Note.lastRecorded;
+				pan = 0; Intervals.populate();
 				
+				Note.initial = Helper.pickFrom(Intervals.loadout.one2, Intervals.loadout.one3);
+				FlxG.play(Note.initial, volume);
+				
+				Note.lastRecorded = Note.initial; Note.lastAbsolute = Note.lastRecorded;
 				MIDI.log(Note.lastAbsolute, volume);
-				HUD.logNote(volume, pan);
-				HUD.logMode();
-				HUD.logKey();
+				HUD.logNote(volume, pan); HUD.logMode();
 			}
 			
 			if (Playback.mode == false)
@@ -285,13 +290,12 @@ package january
 				}
 			}
 			
-			// Push the last Play note to the Replay Playback sequence.
-//			if (Playback.mode == false)
-//				Playback.sequence.push(Note.lastRecorded as Class);
-			
 			// Limit Playback Sequence Size
 			if (Playback.sequence.length > 8)
 				Playback.sequence.shift();
+			
+			if (Pedal.mode == true)
+				playPedalTone();
 		}
 
 		/** Play a note! Takes in class arguments, and will pick one randomly. */	
@@ -299,32 +303,28 @@ package january
 		{				
 			var random: int = 0;
 			var randomNote: Class = null;
+			var i:Object = Intervals.loadout;
 			
 			// Prevent null notes, and various types of repetitions from happening.
-			while (randomNote == null || randomNote == Note.lastAbsolute || (randomNote == Note.lastHarmony && lastLickedType == "Harmony") || (randomNote == Note.lastOctave && lastLickedType == "Octave"))
+			while (randomNote == null
+				|| randomNote == Note.lastAbsolute
+				|| (randomNote == Note.lastHarmony && lastLickedType == "Harmony")
+				|| (randomNote == Note.lastOctave && lastLickedType == "Octave")
+				|| (type == "Octave" && (randomNote == i.for1 || randomNote == i.for2 || randomNote == i.for3)) )
 			{
-				random = Helpers.randInt(0, options.length - 1);
+				random = Helper.randInt(0, options.length - 1);
 				randomNote = options[random] as Class;
 			}
 			
 			// Separate check for preventing trills, at a probability of X : 1, where X is total number of options
 			if (randomNote == Note.secondToLastRecorded)
 			{
-				random = Helpers.randInt(0, options.length - 1);
+				random = Helper.randInt(0, options.length - 1);
 				randomNote = options[random] as Class;
 			}
 			
-			// Make Fourth Octave Range quieter, because it gets a bit shrill.
-			for (var h:int = Note.DATABASE.length - 13; h < Note.DATABASE.length - 1; h++)
-			{
-				if (randomNote == Note.DATABASE[h])
-					volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.16, Global.NOTE_MAX_VOLUME * 0.5);
-			}
-			
-			var i:Object = Intervals.loadout;
-			
-			// Prevent seconds, fourths and sixths from triggering on key changes
-			if (Key.justChanged && (randomNote == i.for1 || randomNote == i.six1 || randomNote == i.for2 || randomNote == i.six2 || randomNote == i.for3 || randomNote == i.six3) )
+			// Prevent fourths and sixths from triggering on key changes
+			if (Key.justChanged && Mode.current != "mixolydian" && (randomNote == i.for1 || randomNote == i.six1 || randomNote == i.for2 || randomNote == i.six2 || randomNote == i.for3 || randomNote == i.six3) )
 			{	
 				//Check randomNote against intervals
 				outerLoop: for (var desc:* in i)
@@ -346,9 +346,9 @@ package january
 				
 				Key.justChanged = false;
 			}
-				
 			
 			FlxG.play(randomNote, volume, pan);
+			
 			MIDI.log(randomNote, volume);
 
 			
@@ -373,7 +373,7 @@ package january
 			
 			if (Mode.current == "ionian")
 			{
-				chordTones = Helpers.pickFrom(
+				chordTones = Helper.pickFrom(
 					// UNIVERSAL CHORDS /////
 					[i.one1, i.thr1, i.fiv1],
 					[i.one1, i.thr1, i.sev1],
@@ -393,7 +393,7 @@ package january
 			}
 			else if (Mode.current == "dorian")
 			{
-				chordTones = Helpers.pickFrom(
+				chordTones = Helper.pickFrom(
 					// UNIVERSAL CHORDS /////
 					[i.one1, i.thr1, i.fiv1],
 					[i.one1, i.thr1, i.sev1],
@@ -410,7 +410,7 @@ package january
 			}
 			else if (Mode.current == "lydian")
 			{
-				chordTones = Helpers.pickFrom(
+				chordTones = Helper.pickFrom(
 					// UNIVERSAL CHORDS /////
 					[i.one1, i.thr1, i.fiv1],
 					[i.one1, i.thr1, i.sev1],
@@ -428,25 +428,29 @@ package january
 			}
 			else if (Mode.current == "mixolydian")
 			{
-				chordTones = Helpers.pickFrom(
+				chordTones = Helper.pickFrom(
 					// UNIVERSAL CHORDS /////
-					[i.one1, i.thr1, i.fiv1],
+					//[i.one1, i.thr1, i.fiv1],
 					[i.one1, i.thr1, i.sev1],
-					[i.one1, i.fiv1, i.one2],
-					[i.one1, i.fiv1, i.thr2],
+					//[i.one1, i.fiv1, i.one2],
+					//[i.one1, i.fiv1, i.thr2],
 					[i.one1, i.fiv1, i.thr2, i.sev2],
-					[i.one1, i.fiv1, i.fiv2],
+					//[i.one1, i.fiv1, i.fiv2],
 					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.one2, i.fiv2],
-					[i.thr1, i.fiv1, i.one2],
-					[i.fiv1, i.one2, i.thr2],
+					//[i.thr1, i.one2, i.fiv2],
+					//[i.thr1, i.fiv1, i.one2],
+					//[i.fiv1, i.one2, i.thr2],
 					/////////////////////////
+					[i.one1, i.fiv1, i.sev1],
+					[i.one1, i.thr2, i.sev2],
+					[i.thr1, i.sev1, i.fiv2],
+					[i.fiv1, i.sev1, i.thr2],
 					[i.thr1, i.fiv1, i.sev1, i.two2]
 				);						 
 			}
 			else if (Mode.current == "aeolian")
 			{
-				chordTones = Helpers.pickFrom(
+				chordTones = Helper.pickFrom(
 					// UNIVERSAL CHORDS /////
 					[i.one1, i.thr1, i.fiv1],
 					[i.one1, i.thr1, i.sev1],
@@ -465,21 +469,30 @@ package january
 				chordTones = [i.one1, i.fiv1, i.thr2];
 		
 			calculatePan();
-			FlxG.play(chordTones[0], Chord.VOLUME, pan);
-			FlxG.play(chordTones[1], Chord.VOLUME,-1);
-			FlxG.play(chordTones[2], Chord.VOLUME, 1);
+			
+			if (type == "Vamp")
+				FlxG.play(chordTones[0], Chord.VOLUME, pan);
+			else
+			{
+				var s1:FlxSound = FlxG.loadSound(chordTones[0], Chord.VOLUME, pan);
+				Game.flamNotes.push(s1);
+			}
+			
+			var s2:FlxSound = FlxG.loadSound(chordTones[1], Chord.VOLUME, -1);
+			var s3:FlxSound = FlxG.loadSound(chordTones[2], Chord.VOLUME, 1);
+			Game.flamNotes.push(s2, s3);
 			
 			if (chordTones[3] != null)
 			{
-				FlxG.play(chordTones[3], Chord.VOLUME, -1*pan);
-				MIDI.log(chordTones[3], Chord.VOLUME);	
+				var s4:FlxSound = FlxG.loadSound(chordTones[3], Chord.VOLUME, -1*pan);
+				Game.flamNotes.push(s4);	
 			}
 			
-			HUD.logMode(chordTones);
+			Game.flamNotes.reverse();
+			Game.flamTimer.start();
 			
-			MIDI.log(chordTones[0], Chord.VOLUME);
-			MIDI.log(chordTones[1], Chord.VOLUME);
-			MIDI.log(chordTones[2], Chord.VOLUME);
+			HUD.logMode();
+			HUD.logEvent(chordTones);
 			
 			if (type == "Transpose")
 			{
@@ -518,13 +531,15 @@ package january
 				if (Note.lastAbsolute == Note.DATABASE[i])
 				{
 					while (octaveTone == null)
-						octaveTone = Note.DATABASE[i + Helpers.pickFrom(12, -12)] as Class;
+						octaveTone = Note.DATABASE[i + Helper.pickFrom(12, -12)] as Class;
 					
 					break outerLoop;
 				}
 			}
 			
-			FlxG.play(octaveTone, Octave.VOLUME, pan);		
+			var octave:FlxSound = FlxG.loadSound(octaveTone, Octave.VOLUME, -1*pan);
+			Game.flamNotes.push(octave);
+			Game.flamTimer.start();
 			Note.lastOctave = octaveTone;
 			
 			MIDI.log(octaveTone, Octave.VOLUME);
@@ -559,12 +574,27 @@ package january
 			else if (Note.lastAbsolute == i.sev3) choices = [i.thr3, i.fiv3];
 			else if (Note.lastAbsolute == i.one4) choices = [i.thr3, i.fiv3];
 				 
-			harmonyTone = choices[Helpers.randInt(0, choices.length - 1)];
-				 
-			FlxG.play(harmonyTone, Global.NOTE_MAX_VOLUME * 0.33, pan);		
+			harmonyTone = choices[Helper.randInt(0, choices.length - 1)];
+			
+			var harmony:FlxSound = FlxG.loadSound(harmonyTone, Harmony.VOLUME, -1*pan);
+			Game.flamNotes.push(harmony);
+			Game.flamTimer.start();
 			Note.lastHarmony = harmonyTone;
 			
-			MIDI.log(harmonyTone, 0.1);
+			MIDI.log(harmonyTone, Harmony.VOLUME);
+		}
+		
+		final protected function playPedalTone():void
+		{
+			var i:Object = Intervals.loadout;
+			
+			var pedalTone:Class = Note.lastAbsolute;
+			
+			while (Note.lastAbsolute == pedalTone || Note.lastPedal == pedalTone)
+				pedalTone = Helper.pickFrom(i.one1, i.fiv1, i.one2, i.fiv2, i.thr3);
+			
+			FlxG.play(pedalTone, volume/2, 0);
+			Note.lastPedal = pedalTone;
 		}
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -628,7 +658,7 @@ package january
 			else if (Note.lastRecorded == i.sev3)	_play(i.sev2, i.thr3, i.fiv3, i.six3, i.one4);
 			else if (Note.lastRecorded == i.one4)	_play(i.six2, i.one3, i.thr3, i.for3, i.fiv3, i.six3, i.sev3);
 				
-			else	_play(i.one1, i.one2, i.one3);
+											else	_play(i.one1, i.one2, i.one3);
 		}
 		
 		final protected function lydian():void
@@ -658,7 +688,7 @@ package january
 			else if (Note.lastRecorded == i.sev3)	_play(i.fiv3, i.one4);
 			else if (Note.lastRecorded == i.one4)	_play(i.one2, i.thr3, i.for3, i.fiv3, i.sev3, i.one3);
 				
-										else	_play(i.one2, i.one3);
+											else	_play(i.one2, i.one3);
 		}
 		
 		final protected function mixolydian():void
@@ -688,7 +718,7 @@ package january
 			else if (Note.lastRecorded == i.sev3)	_play(i.two3, i.sev2, i.fiv3, i.one4);
 			else if (Note.lastRecorded == i.one4)	_play(i.one2, i.thr3, i.fiv3, i.sev3, i.one3);
 				
-			else	_play(i.one2, i.one3);
+											else	_play(i.one2, i.one3);
 		}
 		
 		final protected function aeolian():void
@@ -718,7 +748,7 @@ package january
 			else if (Note.lastRecorded == i.sev3)	_play(i.sev2, i.thr3, i.fiv3, i.six3, i.one4);
 			else if (Note.lastRecorded == i.one4)	_play(i.six2, i.one3, i.thr3, i.for3, i.fiv3, i.six3, i.sev3);
 				
-			else	_play(i.one1, i.one2, i.one3);
+											else	_play(i.one1, i.one2, i.one3);
 		}
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -730,5 +760,6 @@ package january
 			// Convert x position to pan position.
 			pan = 2 * ((this.x - Camera.lens.scroll.x) / FlxG.width) - 1;
 		}
+
 	}
 }

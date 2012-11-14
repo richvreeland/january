@@ -14,10 +14,10 @@ package january.colorlayers
 		
 		override public function onLick():void
 		{				
-			// Start Haze Effect when score is 2.
-			if ( layerOn == false && FlxG.score == 2)
+			// Start Haze Effect whenever first snowflake is licked.
+			if (layerOn == false)
 			{
-				alphaUp(60, 0.24);
+				alphaUp(15, 0.24);
 				layerOn = true;
 			}
 		}

@@ -6,14 +6,14 @@ package january
 	
 	public class Menu extends FlxState
 	{
-		[Embed(source="../assets/art/cursor.png")] private static var mouse : Class;
+		[Embed(source="../assets/art/cursor.png")] private static var mouse: Class;
 		
-		private static var soundText : FlxText;
-		private static var yesText 	 : FlxText;
-		private static var noText 	 : FlxText;
-		private static var yes 		 : FlxButton;
-		private static var no		 : FlxButton;
-		private static var n 		 : int = 0;
+		private static var soundText: FlxText;
+		private static var yesText: FlxText;
+		private static var noText: FlxText;
+		private static var yes: FlxButton;
+		private static var no: FlxButton;
+		private static var n: int = 0;
 		
 		override public function create():void
 		{

@@ -9,7 +9,7 @@ package january
 	        [Embed(source="../assets/frucade.ttf", fontFamily="frucade", embedAsCFF="false")] public static var font:String;
 	
 	        /** The number of seconds to hold the text before it starts to fade. */
-	        private static var _lifespan: Number;
+	        private static var lifespan: Number;
 			/** The gutter size, used to keep text off screen edges. */
 			public static const GUTTER: int = 1;
 			    
@@ -35,7 +35,7 @@ package january
 			public function onLick(SnowRef: Snowflake):void
 			{											
 				// Prevent numbers from showing up after entering the house.
-				if (Global.newGame == true)
+				if (Game.end == true)
 					kill();
 				
 				var _text: String = "";
@@ -52,7 +52,7 @@ package january
 				// Show the new text feedback.
 				if (_text != "")
 				{
-					_lifespan = Global.ALPHA_LIFESPAN;        
+					lifespan = 1;        
 					text = _text;
 					alpha = 1;	
 					maxVelocity.y = 0;
@@ -73,13 +73,44 @@ package january
 						x += 5;
 						
 						// Check Bounds on Right Side
-						if (Game.player.x + realWidth > Camera.rails.x - GUTTER)
-							x = Camera.rails.x - GUTTER - realWidth;
+						if (Game.player.x + realWidth > Camera.anchor.x - GUTTER)
+							x = Camera.anchor.x - GUTTER - realWidth;
 						
 						if (Game.player.x + realWidth > Game.houseRight.x)
 							x = Game.houseRight.x - GUTTER - realWidth;
 					}
 				}				
+			}
+			
+			public function show(newText: String):void
+			{
+				lifespan = 1;        
+				text = newText;
+				alpha = 1;	
+				maxVelocity.y = 0;
+				drag.y = 0;					
+				x = Game.player.x
+				y = Game.player.y - 10;
+				
+				if (Game.player.facing == LEFT)
+				{
+					x -= realWidth + 5;
+					
+					// Check Bounds on Left Side
+					if (Game.player.x - realWidth < GUTTER + Camera.lens.scroll.x)
+						x = Camera.lens.scroll.x + GUTTER;	
+				}
+				else // facing == RIGHT
+				{
+					x += 5;
+					
+					// Check Bounds on Right Side
+					if (Game.player.x + realWidth > Camera.anchor.x - GUTTER)
+						x = Camera.anchor.x - GUTTER - realWidth;
+					
+					if (Game.player.x + realWidth > Game.houseRight.x)
+						x = Game.houseRight.x - GUTTER - realWidth;
+				}
 			}
 		
 			override public function update():void
@@ -91,8 +122,8 @@ package january
 				
 				super.update();
 				
-				if (_lifespan > 0)
-					_lifespan -= FlxG.elapsed;
+				if (lifespan > 0)
+					lifespan -= FlxG.elapsed;
 				else
 					alpha -= FlxG.elapsed;
 					

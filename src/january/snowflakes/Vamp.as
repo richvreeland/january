@@ -1,6 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
+	import january.music.*;
 	
 	public class Vamp extends Snowflake
 	{	
@@ -21,7 +22,7 @@ package january.snowflakes
 			addAnimation("default", [0,0,0,0,0,0,0,0,0,0,1,2,1], 12, true);
 			addAnimation("firefly", [3,3,3,3,3,3,3,3,3,3,4,5,4], 12, true);
 			
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 		}
 		
 		public override function onLick():void

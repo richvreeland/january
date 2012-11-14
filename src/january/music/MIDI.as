@@ -113,14 +113,14 @@ package january.music
 				bytes.writeByte(TRACK_FOOTER[n]);
 			
 			var fileName:String;
-			if (Global.mostLickedType == "Large")
+			if (Game.mostLickedType == "Large")
 				fileName = "snow_eating_contest.mid";
-			else if (Global.mostLickedType == "Transpose")
+			else if (Game.mostLickedType == "Transpose")
 				fileName = "key_change_conniption_fit.mid";
-			else if (Global.mostLickedType == "Harmony")
+			else if (Game.mostLickedType == "Harmony")
 				fileName = "harmonious_harmoniousness.mid";
-			else if (Global.mostLickedType != "")
-				fileName = Global.mostLickedScore + "_" + Global.mostLickedType + "s.mid";
+			else if (Game.mostLickedType != "")
+				fileName = Game.mostLickedScore + "_" + Game.mostLickedType + "s.mid";
 			else
 				fileName = "a_hasty_export.mid";
 			
@@ -128,7 +128,7 @@ package january.music
 			bytes.clear();			
 		}
 		
-		public static function log(sound:Class, velocity:Number, chord:Boolean=false):void
+		public static function log(sound:Class, velocity:Number):void
 		{			
 			if (sound != null)
 			{
@@ -140,7 +140,7 @@ package january.music
 				
 				time = int(timer * 100);						
 				timeBytes = decimalToTimeStamp(time);			
-				velocity = (1 / Global.NOTE_MAX_VOLUME) * velocity * 127;
+				velocity = (1 / Note.MAX_VOLUME) * velocity * 127;
 				
 				for (var j:int = 0; j < timeBytes.length; j++)
 					trackEvents.push(timeBytes[j]);				//	NOTE TIME (SINCE LAST)

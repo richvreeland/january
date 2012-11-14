@@ -1,27 +1,35 @@
 package january
 {
 	import january.music.*;
+	
 	import org.flixel.*;
 	
 	public class HUD
 	{
 		/** The text sprite that holds note name, volume, pan, etc. */
-		public static var 	noteData : FlxText;
+		public static var noteData: FlxText;
 		/** The text sprite that holds mode type, chord tones, etc. */
-		public static var 	modeData : FlxText;
+		public static var modeData: FlxText;
+		/** Current mode in fancy form, with key and proper capitalization. */
+		public static var modeName: String;
 		/** The text sprite that holds key name, key quality, etc. */
-		public static var 	keysData : FlxText;
+		public static var keysData: FlxText;
+		/** The "Save as MIDI" button. */
+		public static var midiButton: Button;
 		/** The font used for HUD objects. */
-		public static const FONT	 : String = "frucade";
+		public static const FONT: String = "frucade";
+		/** Regular Expression used to find "s" for sharp. */
+		private static var findSharp:RegExp = /\s*[s]/g;
 		
 		/** Sets up HUD! does everything but add it to the state. */
 		public static function init():void
 		{				
-			noteData = new FlxText(6, -2, 256, "Note: ");
-			modeData = new FlxText(2, 8, 256, "Event: ");
-			keysData = new FlxText(11, 18, 256, "Key: ");
-			Game.midiButton.x = FlxG.width - Game.midiButton.width - 3;
-			Game.midiButton.y = 3;
+			noteData = new FlxText(9, -1, 256, "Note: ");
+			modeData = new FlxText(8, 9, 256, "Mode: ");
+			keysData = new FlxText(4, 19, 256, "Chord: ");
+			midiButton = new Button();
+			midiButton.x = FlxG.width - midiButton.width - 3;
+			midiButton.y = 3;
 			noteData.scrollFactor.x = modeData.scrollFactor.x = keysData.scrollFactor.x = 0;
 			noteData.font = modeData.font = keysData.font = FONT;
 			noteData.exists = modeData.exists = keysData.exists = false;			
@@ -31,7 +39,7 @@ package january
 		public static function toggle():void
 		{
 			// Press H to Toggle HUD.
-			if(FlxG.keys.justPressed("H"))		
+			if(FlxG.keys.justPressed("H") && Game.end == false)		
 				noteData.exists = modeData.exists = keysData.exists = !keysData.exists;
 			
 			// Press M to Toggle MIDI Save Button.
@@ -42,7 +50,7 @@ package january
 				else
 					FlxG.mouse.show();
 				
-				Game.midiButton.exists = !Game.midiButton.exists;
+				midiButton.exists = !midiButton.exists;
 			}
 		}
 		
@@ -55,11 +63,24 @@ package january
 		public static function logNote(volume:Number, pan:Number):void
 		{		
 			// Log note name, volume and pan to HUD
-			var actualName: String = String(Note.lastAbsolute);
-			actualName = actualName.slice(12);
-			actualName = actualName.slice(0,-1);
-			actualName = actualName.replace(/s/,"#");
-			noteData.text = "Note: " + actualName + ", Volume: " + int(volume*100)/100 + ", Pan: " + int(pan*100)/100;
+			var loggedNote: String = String(Note.lastAbsolute);
+				loggedNote = loggedNote.slice(7);
+				loggedNote = loggedNote.slice(0,-2);
+				loggedNote = enharmonic(loggedNote);
+			
+			var loggedVolume: String = int( (volume*100)*(1/Note.MAX_VOLUME) ).toString() + "%";
+			
+			var loggedPan: String = int(pan*100).toString();
+			
+			if (loggedPan.match("-") != null)
+			{
+				loggedPan = loggedPan.substring(1);
+				loggedPan = loggedPan + "% L";
+			}
+			else if (loggedPan != "0")
+				loggedPan = loggedPan + "% R";
+			
+			noteData.text = "Note: " + loggedNote + ", Volume: " + loggedVolume + ", Pan: " + loggedPan;
 		}
 		
 		/**
@@ -68,12 +89,46 @@ package january
 		 * @param currentMode	The current mode.
 		 * @param chordTones	If a chord was just played, passes through the chord tones.
 		 */		
-		public static function logMode(chordTones:Array = null):void
+		public static function logMode():void
 		{
-			var firstLetter:String = Mode.current.substr(0, 1);
-			var restOfString:String = Mode.current.substr(1, Mode.current.length);	
-			modeData.text = "Event: " + firstLetter.toUpperCase() + restOfString.toLowerCase();;
+			var keyLetter: String;
+
+			if (Key.current == "C Major")
+			{
+				if (Mode.current == "ionian")
+					keyLetter = "C";
+				else if (Mode.current == "dorian")
+					keyLetter = "D";
+				else if (Mode.current == "lydian")
+					keyLetter = "F";
+				else if (Mode.current == "mixolydian")
+					keyLetter = "G";
+				else if (Mode.current == "aeolian")
+					keyLetter = "A";
+			}
+			else if (Key.current == "C Minor")
+			{
+				if (Mode.current == "ionian")
+					keyLetter = "Eb";
+				else if (Mode.current == "dorian")
+					keyLetter = "F";
+				else if (Mode.current == "lydian")
+					keyLetter = "Ab";
+				else if (Mode.current == "mixolydian")
+					keyLetter = "Bb";
+				else if (Mode.current == "aeolian")
+					keyLetter = "C";
+			}
 			
+			var firstLetter:String = Mode.current.substr(0, 1);
+			var restOfString:String = Mode.current.substr(1, Mode.current.length);
+			modeName = keyLetter + " " + firstLetter.toUpperCase() + restOfString.toLowerCase();
+			modeData.text = "Mode: " + modeName;
+		}
+		
+		/** Logs Key Data to HUD. */		
+		public static function logEvent(chordTones:Array = null):void
+		{
 			if (chordTones != null)
 			{
 				var chordName: String = "";
@@ -81,19 +136,39 @@ package january
 				{
 					var actualName: String = String(chordTones[i]);
 					actualName = actualName.slice(12);
-					actualName = actualName.slice(0,-1);
-					actualName = actualName.replace(/s/,"#");
+					actualName = actualName.slice(0,-2);
+					actualName = enharmonic(actualName);
 					chordName += actualName + " ";
 				}
 				
-				modeData.text += ", " + chordName;
+				keysData.text = "Chord: " + chordName;
 			}
 		}
 		
-		/** Logs Key Data to HUD. */		
-		public static function logKey():void
+		private static function enharmonic(text:String):String
 		{
-			keysData.text = "Key: " + Key.current;
+			if (text.search(findSharp) == 1)
+			{
+				text = text.replace(findSharp, "");
+				
+				for (var i:int = 0; i < Key.LETTERS.length - 1; i++)
+				{
+					if (text == Key.LETTERS[i])
+					{
+						text = Key.LETTERS[i+1];
+						break;
+					}
+				}
+				
+				text += "b";
+			}
+			
+			return text;
+		}
+		
+		public static function hide():void
+		{
+			noteData.exists = modeData.exists = keysData.exists = false;
 		}
 	}
 }

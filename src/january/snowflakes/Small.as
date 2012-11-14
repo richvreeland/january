@@ -1,7 +1,7 @@
 package january.snowflakes
 {
 	import january.*;
-	
+	import january.music.*;
 	import org.flixel.*;
 
 	public class Small extends Snowflake
@@ -17,7 +17,7 @@ package january.snowflakes
 			offset.x = 1;
 			
 			windY = 10;
-			volume = Helpers.rand(Global.NOTE_MAX_VOLUME * 0.33, Global.NOTE_MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 			
 			addAnimation("default",[0],0,false);
 			addAnimation("firefly",[1],0,false);

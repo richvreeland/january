@@ -8,7 +8,18 @@ package january
 	import org.flixel.plugin.photonstorm.*;
 	
 	public class Game extends FlxState
-	{		
+	{				
+		// SCORE RELATED /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		/** Initial Score. */
+		private static const SCORE_INIT: int = 0;
+		/** Scores of various Snowflakes. */
+		public static var scores: Object = {"Large": 0, "Chord": 0, "Harmony": 0, "Octave": 0, "Transpose": 0, "Vamp": 0};
+		/** The highest flake score. */
+		public static var mostLickedScore: int = 0;
+		/** The type of flake licked most. */
+		public static var mostLickedType: String = "";
+		
 		// COLOR LAYERS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		/** A color layer of haze. */
@@ -47,22 +58,46 @@ package january
 		// TEXT-RELATED //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		/** The title sprite, which says "January". */
-		public static var title: Title;
-		/** The text sprite used to display number feedback. */
-		public static var textOutput: Text;	
+		private static var title: Title;
 		/** The text sprite displayed at the end of the game.*/
 		private static var gameOverText: FlxText;
-		/** The "Save as MIDI" button. */
-		public static var midiButton: Button = new Button();
+		/** The feedback text for secret features. */
+		public static var secretFeedback: Text;
+		/** An array of strings depicting the various secrets. */
+		private static var secrets: Array = ["Secret #1: H tells you all you need to know.", "Secret #2: M lets you save prematurely.", "Secret #3: comma and dot will help you plot.", "Secret #4: K is for key, okay?", "Secret #5: P is for pedaling.", "Secret #6: Red means no retread.", "Secret #7: Green's a playback machine."];
+		
+		// TIME-RELATED ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		/** The amount of time between Snowflake spawns. */
+		private static var spawnRate: int = 300;
+		/** Time before first Snowflake spawns. */
+		private static const SPAWNRATE_INIT: int = 6000;
+		/** Time between Snowflake spawns when Score is Zero. */
+		private static const SPAWNRATE_ATZERO: int = 12000;
+		/** Time between Snowflake spawns after Exiting the House. */
+		private static const SPAWNRATE_ATEXITHOUSE: int = 8000;
+		/** Rate at which the time between Snowflake spawns is decremented by. */
+		private static const SPAWNRATE_DECREMENTER: int = 4;
+		/** Number which dictates minimum spawnRate. */
+		private static var spawnRateMinMod: int = 11500;
+		/** The minimum amount of time allowed between Snowflake spawns. Initialized in create(), recalculated on resize. */
+		private static var spawnRateMinimum: int;
+		/** The timer for determining when to spawn snowflakes. */
+		private static var spawnTimer: FlxDelay;
+		
+		public static var flamTimer: FlxDelay;
+		private static var flamRate: int = 25;
+		public static var flamNotes: Array = [];
+		private static var flamCounter: int = 0;
 		
 		// MISCELLANEOUS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		/** The timer for determining when to spawn snowflakes. */
-		public static var spawnTimer: FlxDelay;
 		/** The determined width of the game in full-screen mode. */
-		public static var fullScreenWidth: uint;
+		private static var fullScreenWidth: uint;
 		/** Whether or not the player is outside. */
 		private static var outside: Boolean = true;
+		/** Whether or not the player has exited the house. */
+		public static var end: Boolean = false;
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
@@ -70,9 +105,10 @@ package january
 		override public function create():void
 		{					
 			FlxG.stage.removeEventListener(MouseEvent.CLICK, fullScreen);
-			FlxG.score = Global.SCORE_INIT;
+			FlxG.score = SCORE_INIT;
 			FlxG.volume = 1;		
-			FlxG.playMusic(Asset.AMBIENCE, Global.NOTE_MAX_VOLUME * 6.66); FlxG.music.fadeIn(2);
+			FlxG.playMusic(Asset.AMBIENCE, Note.MAX_VOLUME * 6.66); FlxG.music.fadeIn(2);
+			FlxG.sounds.maxSize = 32;
 			
 			//	Build World		
 				sky = new FlxSprite(0, 0, Asset.SKY);
@@ -106,7 +142,8 @@ package january
 			FlxG.worldBounds.height = FlxG.height - FlxG.worldBounds.y;	
 			
 			// Add Feedback Text
-			textOutput = new Text(); add(textOutput);
+			Playback.numbers = new Text(); add(Playback.numbers);
+			secretFeedback = new Text(); add(secretFeedback);
 			
 			// Draw Player
 			player = new Player(); add(player);
@@ -139,13 +176,19 @@ package january
 				gameOverText.scrollFactor.x = 0;
 				gameOverText.exists = false;
 			add(gameOverText);
-			add(midiButton);
+			add(HUD.midiButton);
 			
 			// Create Camera Lens and Rails (Lens Follows the Rails Object)													
-			Camera.init(); add(Camera.rails); add(Camera.lens);	FlxG.resetCameras(Camera.lens);					
+			Camera.init(); add(Camera.anchor); add(Camera.lens);	FlxG.resetCameras(Camera.lens);					
 			
-			// Start Spawn Timer
-			spawnTimer = new FlxDelay(Global.SPAWNRATE_INIT);
+			// Start Timers
+			spawnRateMinimum = (1/FlxG.width) * 10000;
+			spawnTimer = new FlxDelay(SPAWNRATE_INIT);
+			
+			flamTimer = new FlxDelay(flamRate);
+			
+			// Set Initial Mode to Ionian or Aeolian.
+			Mode.index = Helper.pickFrom(0, 4); Mode.init();
 			
 			super.create();
 		}
@@ -153,20 +196,41 @@ package january
 		/** Called every frame. */
 		override public function update():void
 		{											
+			FlxG.log(Mode.current);
+			
+			// Timer callback, used to flam out notes in chords, etc. Awesome!
+			flamTimer.callback = function():void
+			{
+				if (flamNotes[0] != null && flamCounter <= flamNotes.length - 1)
+				{
+					var note:FlxSound = flamNotes[flamCounter];
+					note.play();
+					MIDI.log(note.classType, note.volume);
+					flamCounter++;
+					flamTimer.reset(flamRate);
+				}
+				else
+				{
+					flamCounter = 0;
+					flamNotes = [];
+					flamTimer.abort();
+				}
+			}
+			
 			// Spawn snowflakes when timer expires.
-			spawnTimer.callback =	function():void
-									{				
-										if (FlxG.score == 0)
-											spawnTimer.reset(Global.SPAWNRATE_ATZERO);
-										else
-										{						
-											if (Global.spawnRate <= Global.SPAWNRATE_MINIMUM)
-												Global.spawnRate = Global.SPAWNRATE_MINIMUM;
-											
-											spawnTimer.reset(Global.spawnRate);
-										}				
-										Snowflake.manage();
-									}	
+			spawnTimer.callback = function():void
+			{					
+				if (FlxG.score == 0)
+					spawnTimer.reset(SPAWNRATE_ATZERO);
+				else
+				{						
+					if (spawnRate <= spawnRateMinimum)
+						spawnRate = spawnRateMinimum;
+					
+					spawnTimer.reset(spawnRate);
+				}				
+				Snowflake.manage();
+			}	
 				
 			// Camera Behavior
 			Camera.logic();
@@ -174,7 +238,7 @@ package january
 			super.update();	
 			
 			// Wait until player moves to spawn first snowflake.
-			if ((FlxG.keys.RIGHT || FlxG.keys.D) && FlxG.score == Global.SCORE_INIT && spawnTimer.isRunning == false && Global.newGame == false)
+			if ((FlxG.keys.RIGHT || FlxG.keys.D) && FlxG.score == SCORE_INIT && spawnTimer.isRunning == false && end == false)
 				spawnTimer.start();
 			
 			// Loop Sky Background
@@ -186,8 +250,8 @@ package january
 			// Check for Player Entering House
 			if (player.x > houseRight.x + 8) enterHouse();
 			
-			// Toggle HUD
-			HUD.toggle();
+			// Key input checks for secret features!.
+			HUD.toggle(); Mode.cycle(); Key.toggle(); Pedal.toggle();
 			
 			// Keep MIDI Timer in check, to get appropriate time values for logging.
 			if (Note.lastAbsolute != null)
@@ -200,8 +264,11 @@ package january
 		}
 		
 		/**
-		 * Called when the overlap check for snow and player passes.
-		 * Runs the various onLick functions!
+		 * Called when the player's tongue is up, and hits a snowflake.
+		 *  
+		 * @param SnowRef		The Snowflake licked.
+		 * @param PlayerRef		The Player sprite.
+		 * 
 		 */
 		public function onLick(SnowRef: Snowflake, PlayerRef: Player):void
 		{			
@@ -210,12 +277,12 @@ package january
 			haze.onLick();
 			night.onLick();
 			
-			Global.spawnRate -= Global.SPAWNRATE_DECREMENTER;
+			spawnRate -= SPAWNRATE_DECREMENTER;
 			
 			// What to do on first snowlick of a "new" game.
 			if (FlxG.score == 1)
 			{
-				if (Global.newGame == true)
+				if (end == true)
 					gameOver();
 				else
 				{
@@ -231,7 +298,7 @@ package january
 		{			
 			if (outside == true)
 			{
-				FlxG.play(Asset.DOOR_OPEN, Global.NOTE_MAX_VOLUME * 0.5, 1);
+				FlxG.play(Asset.DOOR_OPEN, Note.MAX_VOLUME * 0.5, 1);
 				FlxG.music.fadeOut(1);
 				player.tongueUp = false;
 				outside = false;
@@ -244,19 +311,29 @@ package january
 		public function exitHouse():void
 		{		
 			if (outside == false)
-			{
-				Camera.rails.x = FlxG.worldBounds.x;
-				Camera.rails.velocity.x = 0;
+			{				
+				HUD.hide();
+				Playback.numbers.kill();
+				
+				// Stop camera anchor and move it all the way to the beginning.
+				Camera.anchor.x = FlxG.worldBounds.x;
+				Camera.anchor.velocity.x = 0;
+				
 				player.x = houseLeft.x + 185;
-				FlxG.play(Asset.DOOR_CLOSE, Global.NOTE_MAX_VOLUME * 0.5, -1);
+				
+				FlxG.play(Asset.DOOR_CLOSE, Note.MAX_VOLUME * 0.5, -1);
 				FlxG.music.fadeIn(1);
+				
 				haze.alphaDown(0,0);
 				night.alphaDown(15,0);
 				black.alphaDown(3);
+				
 				FlxG.score = 0;
-				spawnTimer.reset(Global.SPAWNRATE_ATEXITHOUSE);
+				
+				spawnTimer.reset(SPAWNRATE_ATEXITHOUSE);
+				
 				outside = true;
-				Global.newGame = true;
+				end = true;
 			}
 		}
 		
@@ -268,41 +345,43 @@ package january
 			black.fill(0xFF75899C);
 			
 			//score stuff for save name and end title.
-			var score:int = Global.scores["Large"];
-			var kind:String = "Large";
-			for (var item:* in Global.scores)
-			{
-				if (Global.scores[item] > score)
-				{
-					score = Global.scores[item];
-					kind = item;
-				}
-			}
+//			var score:int = scores["Large"];
+//			var kind:String = "Large";
+//			for (var item:* in scores)
+//			{
+//				if (scores[item] > score)
+//				{
+//					score = scores[item];
+//					kind = item;
+//				}
+//			}
+//			
+//			if (kind == "Transpose")
+//				gameOverText.text = "You ate your way to " + score + " Key Changes.";
+//			else if (kind == "Harmony")
+//				gameOverText.text = "You thought it wise to add a harmony note " + score + " times.";
+//			else if (kind == "Chord")
+//				gameOverText.text = "You ate " + score + " Chords, which is an odd thing to do.";
+//			else if (kind == "Octave")
+//				gameOverText.text = "You heard you liked Octaves, so you put " + score + " Octaves on your notes.";
+//			else if (kind == "Vamp")
+//				gameOverText.text = "You vamped " + score + " times. For lack of a better word.";
+//			else
+//				gameOverText.text = "You ate a lot of snow. But it doesn't have to end here.";
+//			
+//			mostLickedScore = score;
+//			mostLickedType = kind;
 			
-			if (kind == "Transpose")
-				gameOverText.text = "You ate your way to " + score + " Key Changes.";
-			else if (kind == "Harmony")
-				gameOverText.text = "You thought it wise to add a harmony note " + score + " times.";
-			else if (kind == "Chord")
-				gameOverText.text = "You ate " + score + " Chords, which is an odd thing to do.";
-			else if (kind == "Octave")
-				gameOverText.text = "You heard you liked Octaves, so you put " + score + " Octaves on your notes.";
-			else if (kind == "Vamp")
-				gameOverText.text = "You vamped " + score + " times. For lack of a better word.";
-			else
-				gameOverText.text = "You ate a lot of snow. But it doesn't have to end here.";
-			
-			Global.mostLickedScore = score;
-			Global.mostLickedType = kind;
+			gameOverText.text = Helper.randomPull(secrets);
 			
 			FlxG.mouse.show();
 			gameOverText.x = (FlxG.width - gameOverText.realWidth) / 2; gameOverText.y = 30;
-			midiButton.x = (FlxG.width - midiButton.width)/2;	midiButton.y = 90;
-			gameOverText.exists = midiButton.exists = true;
+			HUD.midiButton.x = (FlxG.width - HUD.midiButton.width)/2; HUD.midiButton.y = 90;
+			gameOverText.exists = HUD.midiButton.exists = true;
 			snow.kill(); player.kill();
 			
 			// Will start Camera.lens rails back up
-			//Camera.rails.x += FlxG.width;
+			//Camera.anchor.x += FlxG.width;
 		}
 		
 		/** Called when switching to full-screen interactive mode. */
@@ -318,19 +397,20 @@ package january
 			// If We're in Full Screen Interactive Mode
 			if (FlxG.stage.displayState == StageDisplayState.FULL_SCREEN_INTERACTIVE)
 			{			
-				FlxCamera.defaultZoom = Math.floor(FlxG.stage.stageWidth / January.INIT_WIDTH) - 1;			
-				fullScreenWidth = FlxG.stage.stageWidth / FlxCamera.defaultZoom;				
-				FlxG.stage.align = StageAlign.LEFT;
+				FlxCamera.defaultZoom = Math.floor(FlxG.stage.stageWidth / January.INIT_WIDTH); //- 1;			
+				fullScreenWidth = FlxG.stage.stageWidth / FlxCamera.defaultZoom;
 				FlxG.width = fullScreenWidth;
+				FlxCoreUtils.gameContainer.y = (FlxG.stage.stageHeight - (FlxG.height * FlxCamera.defaultZoom)) / 2;
 				// use this if switching to fullscreen while in PlayState
-				//Camera.rails.x += (fullScreenWidth - January.INIT_WIDTH);
+				//Camera.anchor.x += (fullScreenWidth - January.INIT_WIDTH);
 			}
 			else			
 			{
 				FlxG.width = January.INIT_WIDTH;
-				FlxCamera.defaultZoom = January.INIT_ZOOM;			
+				FlxCamera.defaultZoom = January.INIT_ZOOM;
+				FlxCoreUtils.gameContainer.y = 0;
 				if (player.x < Camera.lens.scroll.x + January.INIT_WIDTH)
-					Camera.rails.x -= (fullScreenWidth - January.INIT_WIDTH);
+					Camera.anchor.x -= (fullScreenWidth - January.INIT_WIDTH);
 			}
 			
 			// if PlayState is the current state
@@ -339,15 +419,17 @@ package january
 				FlxG.resetCameras(Camera.lens = new FlxCamera(0, 0, FlxG.width + 1, FlxG.height));	
 				Camera.lens.setBounds(FlxG.worldBounds.x, 0, FlxG.worldBounds.width, FlxG.height);
 				Camera.lens.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
-				Camera.lens.target = Camera.rails;
+				Camera.lens.target = Camera.anchor;
 				
-				if (Global.newGame == true)
+				spawnRateMinimum = (1/FlxG.width) * 10000;
+				
+				if (end == true)
 				{
 					gameOverText.x = (FlxG.width - gameOverText.realWidth) / 2;
-					midiButton.x = (FlxG.width - midiButton.width) / 2;
+					HUD.midiButton.x = (FlxG.width - HUD.midiButton.width) / 2;
 				}
 				else
-					midiButton.x = FlxG.width - midiButton.width - 3;
+					HUD.midiButton.x = FlxG.width - HUD.midiButton.width - 3;
 			}
 			else
 				FlxG.resetCameras(new FlxCamera(0, 0, FlxG.width + 1, FlxG.height));

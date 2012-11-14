@@ -4,19 +4,24 @@ package january
 	
 	public class Player extends FlxSprite
 	{	
-		[Embed(source="../assets/art/player.png")] private static var sprite:Class;
+		[Embed(source="../assets/art/player.png")] private var sprite: Class;
 		
-		public var boundsLeft : int;
-		
-		public var scrollLeft: int;
-		public var scrollRight: int;
-		
-		protected var stopped: Boolean;
-		public var tongueUp: Boolean;
+		/** Initial Player X Position. */
+		public static const X_INIT: int = Camera.X_INIT + 25;
+		/** Size of the player's boundary on the left side of the screen, in pixels. */
+		private var boundsLeft: int = 0;
+		/** Scrolling X position of the left side of the screen, in pixels. */
+		private var scrollLeft: int = 0;
+		/** Scrolling X position of the right side of the screen, in pixels. */
+		private var scrollRight: int = 0;
+		/** Whether the player has stopped moving. */
+		private var stopped: Boolean = false;
+		/** Whether the player's tongue is up. */
+		public var tongueUp: Boolean = false;
 		
 		public function Player()
 		{
-			x = Global.PLAYER_X_INIT; y = 79;
+			x = X_INIT; y = 79;
 			
 			super(x, y);
 			loadGraphic(sprite, false, true, 16, 33);
@@ -112,11 +117,11 @@ package january
 			
 			// Update scrolling boundaries.
 			scrollLeft	= Camera.lens.scroll.x + boundsLeft;
-			scrollRight = Camera.rails.x - width;
+			scrollRight = Camera.anchor.x - width;
 		
 			if (x < scrollLeft)
 				x = scrollLeft;
-			else if (x > scrollRight && Global.newGame == false)
+			else if (x > scrollRight && Game.end == false)
 				x = scrollRight;
 			else if (x <= FlxG.worldBounds.x + 50)
 				x = FlxG.worldBounds.x + 50;		

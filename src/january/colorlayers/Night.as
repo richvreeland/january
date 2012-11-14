@@ -1,6 +1,7 @@
 package january.colorlayers
 {
 	import january.*;
+	import january.music.*;
 	import org.flixel.*;
 	
 	public class Night extends ColorLayer
@@ -15,9 +16,9 @@ package january.colorlayers
 		
 		override public function onLick():void
 		{			
-			if (layerOn == false && FlxG.score == 10) //10
+			if (layerOn == false && Playback.mode == true) //10
 			{
-				alphaUp(120, 0.85); //120
+				alphaUp(45, 0.85); //120
 				layerOn = true;
 			}
 		}
