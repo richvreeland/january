@@ -41,12 +41,24 @@ package january
 				var _text: String = "";
 				
 				// Store the number of the current place in the playback sequence when appropriate.
-				if (Playback.mode == true && SnowRef.type != "Vamp")
+				if (Snowflake.mode == "Playback" && SnowRef.type != "Vamp")
 				{
-					if (Playback.index != 0)
-						_text = Playback.index.toString();						
+					if (Playback.reverse == false)
+					{
+						if (Playback.index != 0)
+							_text = Playback.index.toString();
+						else
+							_text = Playback.sequence.length.toString();
+					}
 					else
-						_text = Playback.sequence.length.toString();
+					{											
+						var indexString: int = Playback.index + 2;
+						
+						if (indexString == Playback.sequence.length + 1)
+							_text = "1";
+						else
+							_text = indexString.toString();					
+					}
 				}
 				
 				// Show the new text feedback.

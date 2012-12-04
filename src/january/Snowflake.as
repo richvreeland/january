@@ -1,6 +1,6 @@
 package january
 {
-	import flash.utils.getDefinitionByName;
+	import flash.utils.*;
 	
 	import january.music.*;
 	import january.snowflakes.*;
@@ -15,18 +15,33 @@ package january
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
 
 		/** Volume for the Note. */
-		protected var volume: Number = 0;	
+		protected var volume: Number;	
 		/** Pan Value for the Note, measured in -1 to 1. */
-		protected var pan: Number = 0;
+		protected var pan: Number = Helper.rand(-1, 1);
+		/** Whether the Snowflake in question allows for a pedal tone. */
+		protected var pedalAllowed: Boolean;
+		/** The current gameplay mode. */
+		public static var mode: String = "Record";
+		/** Used to store Intervals.loadout */
+		protected static var i: Object;
+		/** Whether to use primary or secondary timbre set. */
+		public static var timbre: String;
+		/** Volume Modifier for Secondary Timbre, used to divide original volume. */
+		public static var _volumeMod: Number = 1.5;
+		
+		// List of Secondary Timbre Classes
+		_C1; _Cs1; _D1; _Ds1; _E1; _F1; _Fs1; _G1; _Gs1; _A1; _As1; _B1; _C2; _Cs2; _D2; _Ds2; _E2; _F2; _Fs2; _G2; _Gs2; _A2; _As2; _B2; _C3; _Cs3; _D3; _Ds3; _E3; _F3; _Fs3; _G3; _Gs3; _A3; _As3; _B3; _C4; _Cs4; _D4; _Ds4; _E4; _F4; _Fs4; _G4; _Gs4; _A4; _As4; _B4;
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// NON-MUSIC DEFINITIONS ///////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		/** The default color for fireflies in Record mode. */
-		private static const RECORD_COLOR: uint = 0xFA0013;
+		public static const RECORD_COLOR: uint = 0xFFFFFF;
 		/** The default color for fireflies in Playback mode. */
-		private static const PLAYBACK_COLOR: uint = 0x64E000;
+		public static const PLAYBACK_COLOR: uint = 0x64E000;
+		/** The default color for fireflies in Interject mode. */
+		public static const INTERJECT_COLOR: uint = 0xF5D400;
 		
 		/** The type of snowflake in question. */
 		public var type: String = "";
@@ -36,17 +51,19 @@ package january
 		protected var windX: int = 0;
 		/** Vertical modifier for snowflake movement. */
 		protected var windY: int = 0;
+		/** The amount of headway for flake spawning. */
+		protected static var headwayX: int = 60;
 		/** Whether snowflake is a firefly or not, determined by whether it has been licked. */
-		protected var licked: Boolean = false;
+		protected var licked: Boolean;
 		/** The number of seconds to hold the firefly before it starts to fade. */
 		protected var alphaLifespan: Number = 0;
 		
 		// Snowflake spawning probabilities
-		private static var flakes: Array  = ["Small", "Large", "Octave", "Harmony", "Chord"	, "Vamp", "Transpose"];
+		private static var flakes: Array  = ["Small", "Record", "Octave", "Harmony", "Chord", "Vamp", "Transpose"];
 		private static var weights: Array = [78.5, 10, 0, 0, 0, 0, 0];
 		
 		// List of classes for getDefinitionByName() to use
-		Chord; Large; Octave; Small; Transpose; Harmony; Vamp;
+		Small; Record; Octave; Harmony; Chord; Vamp; Transpose; //Interject;
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -61,65 +78,31 @@ package january
 		{													
 			// All Flakes are Spawned based on weighted probability, except for the first one.
 			var flakeID: String;
-			if (FlxG.score > 1)
-				flakeID = flakes[Helper.weightedChoice(weights)];
+			
+			 if (FlxG.score > 1)
+				 flakeID = flakes[Helper.weightedChoice(weights)];
 			else if (FlxG.score == 1)
 				flakeID = "Small";
 			else
-				flakeID = "Large";
+				flakeID = "Record";
 			
 			// use string above to instantiate proper Snowflake Subclass.
-			var subClass : Class = getDefinitionByName( "january.snowflakes." + flakeID ) as Class;	
-			var flake : Object = Game.snow.recycle(subClass) as subClass;
+			var subClass: Class = getDefinitionByName( "january.snowflakes." + flakeID ) as Class;			
+			var flake: Object = Game.snow.recycle(subClass) as subClass;
 			flake.spawn(flakeID);		
 		}
 		
 		/** Spawns snowflakes. */
-		protected function spawn(flakeType: String, firefly: Boolean = false, X: Number = 0, Y: Number = 0):void
+		protected function spawn(flakeType: String, spawnX: Number = 0):void
 		{															
-			if (firefly == false)
-			{
-				// POSITION
-				if (FlxG.score > 0)
-					x = Helper.randInt(Camera.lens.scroll.x, Camera.anchor.x + 60);
-				else
-					x = Camera.lens.scroll.x + FlxG.width/2;			
-				y = height * -1;
-			}
+			// POSITION
+			if (spawnX != 0)
+				x = spawnX;
 			else
-			{
-				licked = true;
+				x = Helper.randInt(Camera.lens.scroll.x, Camera.anchor.x + headwayX);		
 				
-				// CLEAN UP
-				maxVelocity.y = 0;
-				drag.y = 0;	
-				
-				// POSITION
-				x = X;
-				y = Y;	
-				
-				// COLOR
-				if (Playback.mode == true)
-					color = PLAYBACK_COLOR;
-				else
-					color = RECORD_COLOR;
-				
-				// OPACITY
-				flicker(0.75);
-				
-				alphaLifespan = 1;
-				if (Game.night.layerOn == true)
-				{
-						alpha = Game.night.alpha;	
-					if (alpha >= 0.85)
-						alpha = 1;
-				}
-				else
-					alpha = 0;
-				
-				// TEXT OUTPUT
-				Playback.numbers.onLick(this);
-			}			
+			y = height * -1;
+					
 			type = flakeType;
 			exists = true;
 		}
@@ -132,15 +115,17 @@ package january
 			
 			if (licked == false)
 			{
-					windX = 5 + (FlxG.score * 0.025);
+				windX = 5 + (FlxG.score * 0.025);
+			
 				if (windX >= 10)
 					windX = 10;
-				velocity.x = (Math.cos(y / windX) * windX);
 				
+				velocity.x = (Math.cos(y / windX) * windX);
+					
 				if (FlxG.score == 0)
 					velocity.y = 15;
 				else
-					velocity.y = 5 + (Math.cos(y / 25) * 5) + windY;
+					velocity.y = 5 + (Math.cos(y / 25) * 5) + windY;					
 			}
 			else // FIREFLIES
 			{
@@ -179,7 +164,7 @@ package january
 		
 		/** Called when a Snowflake has been licked. */
 		public function onLick():void
-		{							
+		{				
 			super.kill();
 								
 			FlxG.score++;
@@ -193,35 +178,42 @@ package january
 			if (FlxG.score >= Chord.INTRODUCE_AT)		weights[4] = 2;		// Chord
 			if (FlxG.score >= Harmony.INTRODUCE_AT)		weights[3] = 3.5;	// Harmony
 			if (FlxG.score >= Octave.INTRODUCE_AT)		weights[2] = 3.5;	// Octave
+//			if (FlxG.score >= Interject.INTRODUCE_AT)
+//			{
+//				// Diametrically oppose Record and Interject flakes, for simplification of game design.
+//				if (mode == "Record")
+//				{
+//					weights[1] = 10;
+//					weights[2] = 0;
+//				}
+//				else if (mode == "Interject")
+//				{
+//					weights[1] = 0;
+//					weights[2] = 10;
+//				}
+//				else
+//				{
+//					weights[1] = 5;
+//					weights[2] = 5;
+//				}
+//			}
 			
 			// Increase Flake Probability if Player Keeps Licking that type. only Harmony and Octave Flakes
-			for (var i:int = 2; i <= 3; i++)
+			for (var j:int = 2; j <= 3; j++)
 			{
 				// Increment probability by .05%
-				if (type == flakes[i])
+				if (type == flakes[j])
 				{
-					weights[i] += 0.05;
+					weights[j] += 0.05;
 					weights[0] -= 0.05;	
 				}
 				
 				// Limit Probability to 5%
-				if (weights[i] >= 5)
-					weights[i] = 5;
+				if (weights[j] >= 5)
+					weights[j] = 5;
 			}
-			lastLickedType = type;
 			
-			// DETERMINE WHETHER TO USE RECORD/PLAYBACK MODE
-			if (type == "Large" && FlxG.score > 1)
-			{
-				if (Playback.mode == false && Playback.sequence.length > 0)
-					Playback.mode = true;
-				else
-				{
-					Playback.mode = false;
-					Playback.sequence = [];
-					Playback.index = 0;
-				}
-			}
+			lastLickedType = type;
 		}
 		
 		/** Create a firefly when player has licked snowflake. */
@@ -231,8 +223,46 @@ package january
 			{				
 				var lickedFlake: Class = getDefinitionByName( "january.snowflakes." + type ) as Class;	
 				var firefly: Object = Game.fireflies.recycle(lickedFlake) as lickedFlake;
-				firefly.spawn(type, true, x, y);
+				firefly.spawnFirefly(type, x, y);
 			}
+		}
+		
+		/** Spawns fireflies (post-licked snowflakes). */
+		protected function spawnFirefly(flakeType: String, X: Number = 0, Y: Number = 0):void
+		{
+			// CLEAN UP
+			maxVelocity.y = 0; drag.y = 0;	
+			
+			// POSITION
+			x = X; y = Y;	
+			
+			// MODE SPECIFIC STUFF
+			if (mode == "Playback")
+			{
+				color = PLAYBACK_COLOR;
+				Playback.numbers.onLick(this);
+			}
+			else if (mode == "Interject")
+				color = INTERJECT_COLOR;
+			else
+				color = RECORD_COLOR;
+			
+			// VISUAL FX			
+			alphaLifespan = 1;
+			if (Game.night.layerOn == true)
+			{
+				alpha = Game.night.alpha;	
+				
+				if (alpha >= 0.85)
+					alpha = 1;
+			}
+			else
+				alpha = 0;
+			
+			// ASSIGNMENTS
+			type = flakeType;
+			licked = true;
+			exists = true;
 		}
 		
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,513 +272,231 @@ package january
 		/** Determines which kind of note to play. */
 		final protected function playNote():void
 		{									
-			pan = Helper.rand(-1, 1);
-		
-			var intervals:Object = Intervals.loadout;
+			i = Intervals.loadout;
 			
-			if (Playback.mode == true)	// PLAYBACK MODE
-			{						
+			if (mode == "Playback")									
+				playback();
+			else
+				generateNote();
+			
+			if (mode == "Record")
+				manageSequence();
+			
+			if (Pedal.mode == true)
+				if (pedalAllowed) playPedalTone();
+		}
+		
+		/** Plays a playback note, pulled from a sequence of stored notes. */
+		final protected function playback():void
+		{
+			//FlxG.log("playback()");
+			
+			if (Playback.sequence.length == 0)
+			{
+				FlxG.play(Note.lastAbsolute, volume, pan);
+				Playback.index = 1;
+			}
+			else
+			{				
 				// Convert Interval String in Sequence to Note, then play it.
 				var id:String = Playback.sequence[Playback.index];
-				FlxG.play(intervals[id] as Class, volume, pan);
-				Note.lastAbsolute = intervals[id] as Class;			
-				Playback.index++;
 				
-				if (Playback.index > Playback.sequence.length - 1)
-					Playback.index = 0;
+				if (timbre == "Primary")
+					FlxG.play(i[id] as Class, volume, pan);
+				else
+				{
+					var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(i[id] as Class) ) as Class;
+					FlxG.play(modifiedNote, volume/_volumeMod, pan);
+				}
 				
-				MIDI.log(Note.lastAbsolute, volume);
-				HUD.logNote(volume, pan);
-			}
-			else if (Note.lastRecorded != null)	// RECORD MODE
-			{						
-				var modeFunction:Function = this[Mode.current] as Function;
-				modeFunction();			
-			}
-			else // INITIAL SNOWFLAKE
-			{
-				pan = 0; Intervals.populate();
+				Note.lastAbsolute = i[id] as Class;			
 				
-				Note.initial = Helper.pickFrom(Intervals.loadout.one2, Intervals.loadout.one3);
-				FlxG.play(Note.initial, volume);
+				// Index Counting 
+				if (Playback.reverse == false)
+				{
+					Playback.index++;
 				
-				Note.lastRecorded = Note.initial; Note.lastAbsolute = Note.lastRecorded;
-				MIDI.log(Note.lastAbsolute, volume);
-				HUD.logNote(volume, pan); HUD.logMode();
+					if (Playback.index > Playback.sequence.length - 1)
+						Playback.index = 0;
+				}
+				else
+				{
+					Playback.index--;
+					
+					if (Playback.index < 0)
+						Playback.index = Playback.sequence.length - 1;
+				}
 			}
 			
-			if (Playback.mode == false)
+			MIDI.log(Note.lastAbsolute, volume);
+			HUD.logNote(volume, pan);
+		}
+		
+		final protected function manageSequence():void
+		{			
+			// Push reference to interval to sequence array (strings)
+			loop: for (var interval:* in i)
 			{
-				// Push reference to interval to sequence array (strings)
-				loop: for (var interval:* in intervals)
+				if (Note.lastRecorded == i[interval])
 				{
-					if (Note.lastRecorded == intervals[interval])
-					{
-						Playback.sequence.push(interval);				
-						break loop;
-					}
+					Playback.sequence.push(interval);
+					
+					break loop;
 				}
 			}
 			
 			// Limit Playback Sequence Size
 			if (Playback.sequence.length > 8)
 				Playback.sequence.shift();
-			
-			if (Pedal.mode == true)
-				playPedalTone();
 		}
-
-		/** Play a note! Takes in class arguments, and will pick one randomly. */	
-		final protected function _play(... options):void
+		
+		/** Play a note! Takes in an array of classes, and will pick one randomly. */	
+		final protected function _play(options: Array):void
 		{				
-			var random: int = 0;
-			var randomNote: Class = null;
-			var i:Object = Intervals.loadout;
+			var randomNote: Class = noteAdjustments(options);
 			
-			// Prevent null notes, and various types of repetitions from happening.
-			while (randomNote == null
-				|| randomNote == Note.lastAbsolute
-				|| (randomNote == Note.lastHarmony && lastLickedType == "Harmony")
-				|| (randomNote == Note.lastOctave && lastLickedType == "Octave")
-				|| (type == "Octave" && (randomNote == i.for1 || randomNote == i.for2 || randomNote == i.for3)) )
+			if (timbre == "Primary")
+				FlxG.play(randomNote, volume, pan);
+			else
 			{
-				random = Helper.randInt(0, options.length - 1);
-				randomNote = options[random] as Class;
-			}
+				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(randomNote) ) as Class;
+				FlxG.play(modifiedNote, volume/_volumeMod, pan);
+			}	
 			
-			// Separate check for preventing trills, at a probability of X : 1, where X is total number of options
-			if (randomNote == Note.secondToLastRecorded)
-			{
-				random = Helper.randInt(0, options.length - 1);
-				randomNote = options[random] as Class;
-			}
-			
-			// Prevent fourths and sixths from triggering on key changes
-			if (Key.justChanged && Mode.current != "mixolydian" && (randomNote == i.for1 || randomNote == i.six1 || randomNote == i.for2 || randomNote == i.six2 || randomNote == i.for3 || randomNote == i.six3) )
-			{	
-				//Check randomNote against intervals
-				outerLoop: for (var desc:* in i)
-				{				
-					if (randomNote == i[desc])
-					{
-						// check against interval strings
-						for (var j:int = 0; j < Intervals.DATABASE.length - 1; j++)
-						{
-							if (i[desc] == Intervals.DATABASE[j])
-							{
-								// change new note to be +/- 1 interval if the key just changed.
-								randomNote = i[Intervals.DATABASE[j + FlxMath.randomSign()]];
-								break outerLoop;
-							}
-						}
-					}
-				}
-				
-				Key.justChanged = false;
-			}
-			
-			FlxG.play(randomNote, volume, pan);
-			
+			// LOGS
 			MIDI.log(randomNote, volume);
-
-			
-			// Only store note we just played if we're in play mode.
-			if (Playback.mode == false)
-			{
-				// Store second to Last Play Note, used above, to prevent trills.
-				Note.secondToLastRecorded = Note.lastRecorded;
-				// Store Last Play Note, used for generative logic.
-				Note.lastRecorded = randomNote;
-				// Store Last Play Note as the Last Absolute Note, because it is.
-				Note.lastAbsolute = Note.lastRecorded;
-			}
-			
+			Note.secondToLastRecorded = Note.lastRecorded;
+			Note.lastRecorded = randomNote;
+			Note.lastAbsolute = Note.lastRecorded;
 			HUD.logNote(volume, pan);
 		}
 				
 		final protected function playChord():void
 		{					
-			var i:Object = Intervals.loadout;		
-			var chordTones: Array;
+			i = Intervals.loadout;
 			
-			if (Mode.current == "ionian")
-			{
-				chordTones = Helper.pickFrom(
-					// UNIVERSAL CHORDS /////
-					[i.one1, i.thr1, i.fiv1],
-					[i.one1, i.thr1, i.sev1],
-					[i.one1, i.fiv1, i.one2],
-					[i.one1, i.fiv1, i.thr2],
-					[i.one1, i.fiv1, i.thr2, i.sev2],
-					[i.one1, i.fiv1, i.fiv2],
-					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.one2, i.fiv2],
-					[i.thr1, i.fiv1, i.one2],
-					[i.fiv1, i.one2, i.thr2],
-					//[i.sev1, i.one2, i.thr2, i.fiv2],
-					/////////////////////////
-					[i.one2, i.two2, i.sev2],
-					[i.one1, i.two2, i.sev2]
-				);
-			}
-			else if (Mode.current == "dorian")
-			{
-				chordTones = Helper.pickFrom(
-					// UNIVERSAL CHORDS /////
-					[i.one1, i.thr1, i.fiv1],
-					[i.one1, i.thr1, i.sev1],
-					[i.one1, i.fiv1, i.one2],
-					[i.one1, i.fiv1, i.thr2],
-					[i.one1, i.fiv1, i.thr2, i.sev2],
-					[i.one1, i.fiv1, i.fiv2],
-					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.one2, i.fiv2],
-					[i.thr1, i.fiv1, i.one2],
-					[i.fiv1, i.one2, i.thr2]
-					/////////////////////////
-				);
-			}
-			else if (Mode.current == "lydian")
-			{
-				chordTones = Helper.pickFrom(
-					// UNIVERSAL CHORDS /////
-					[i.one1, i.thr1, i.fiv1],
-					[i.one1, i.thr1, i.sev1],
-					[i.one1, i.fiv1, i.one2],
-					[i.one1, i.fiv1, i.thr2],
-					[i.one1, i.fiv1, i.thr2, i.sev2],
-					[i.one1, i.fiv1, i.fiv2],
-					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.one2, i.fiv2],
-					[i.thr1, i.fiv1, i.one2],
-					[i.fiv1, i.one2, i.thr2],
-					/////////////////////////
-					[i.one1, i.six1, i.sev1, i.thr2]
-				);
-			}
-			else if (Mode.current == "mixolydian")
-			{
-				chordTones = Helper.pickFrom(
-					// UNIVERSAL CHORDS /////
-					//[i.one1, i.thr1, i.fiv1],
-					[i.one1, i.thr1, i.sev1],
-					//[i.one1, i.fiv1, i.one2],
-					//[i.one1, i.fiv1, i.thr2],
-					[i.one1, i.fiv1, i.thr2, i.sev2],
-					//[i.one1, i.fiv1, i.fiv2],
-					[i.one1, i.thr2, i.sev2],
-					//[i.thr1, i.one2, i.fiv2],
-					//[i.thr1, i.fiv1, i.one2],
-					//[i.fiv1, i.one2, i.thr2],
-					/////////////////////////
-					[i.one1, i.fiv1, i.sev1],
-					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.sev1, i.fiv2],
-					[i.fiv1, i.sev1, i.thr2],
-					[i.thr1, i.fiv1, i.sev1, i.two2]
-				);						 
-			}
-			else if (Mode.current == "aeolian")
-			{
-				chordTones = Helper.pickFrom(
-					// UNIVERSAL CHORDS /////
-					[i.one1, i.thr1, i.fiv1],
-					[i.one1, i.thr1, i.sev1],
-					[i.one1, i.fiv1, i.one2],
-					[i.one1, i.fiv1, i.thr2],
-					[i.one1, i.fiv1, i.thr2, i.sev2],
-					[i.one1, i.fiv1, i.fiv2],
-					[i.one1, i.thr2, i.sev2],
-					[i.thr1, i.one2, i.fiv2],
-					[i.thr1, i.fiv1, i.one2],
-					[i.fiv1, i.one2, i.thr2]
-					/////////////////////////
-				);
-			}
-			else
-				chordTones = [i.one1, i.fiv1, i.thr2];
+			// DETERMINE CHORD TONES
+			var chordTones: Array = Helper.pickNested(Mode.current.chords);
 		
+			// PUSH NOTES TO FLAM TIMER
 			calculatePan();
 			
+			// MODIFY ROOT NOTE IF USING SECONDARY TIMBRE
+			if (timbre == "Secondary")
+				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[0]]) ) as Class;
+			
+			// First chord tone of Vamp should play immediately, because there is no playNote() function call.
 			if (type == "Vamp")
-				FlxG.play(chordTones[0], Chord.VOLUME, pan);
+			{
+				if (timbre == "Primary")
+					FlxG.play(i[chordTones[0]], Chord.VOLUME, pan);
+				else
+					FlxG.play(modifiedNote, Chord.VOLUME/_volumeMod, pan);
+			}
 			else
 			{
-				var s1:FlxSound = FlxG.loadSound(chordTones[0], Chord.VOLUME, pan);
+				var s1:FlxSound;
+				
+				if (timbre == "Primary")
+					s1 = FlxG.loadSound(i[chordTones[0]], Chord.VOLUME, pan);	
+				else
+					s1 = FlxG.loadSound(modifiedNote, Chord.VOLUME/_volumeMod, pan);
+				
 				Game.flamNotes.push(s1);
 			}
 			
-			var s2:FlxSound = FlxG.loadSound(chordTones[1], Chord.VOLUME, -1);
-			var s3:FlxSound = FlxG.loadSound(chordTones[2], Chord.VOLUME, 1);
+			var s2:FlxSound;
+			var s3:FlxSound;
+			
+			if (timbre == "Primary")
+			{
+				s2 = FlxG.loadSound(i[chordTones[1]], Chord.VOLUME, -1);
+				s3 = FlxG.loadSound(i[chordTones[2]], Chord.VOLUME, 1);
+			}
+			else
+			{
+				var _s2: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[1]]) ) as Class;
+				var _s3: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[2]]) ) as Class;
+				
+				s2 = FlxG.loadSound(_s2, Chord.VOLUME/_volumeMod, -1);
+				s3 = FlxG.loadSound(_s3, Chord.VOLUME/_volumeMod, 1);
+			}
+			
 			Game.flamNotes.push(s2, s3);
 			
-			if (chordTones[3] != null)
+			// Create array of classes for HUD logging.
+			var events: Array = [ i[chordTones[0]], i[chordTones[1]], i[chordTones[2]] ];
+			
+			// If the chord is a seventh chord, push the 4th chord tone.
+			if (i[chordTones[3]] != null)
 			{
-				var s4:FlxSound = FlxG.loadSound(chordTones[3], Chord.VOLUME, -1*pan);
+				var s4:FlxSound;
+				
+				if (timbre == "Primary")
+					s4 = FlxG.loadSound(i[chordTones[3]], Chord.VOLUME, -1*pan);
+				else
+				{
+					var _s4: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[3]]) ) as Class;
+					s4 = FlxG.loadSound(_s4, Chord.VOLUME/_volumeMod, -1*pan);
+				}
+					
 				Game.flamNotes.push(s4);	
+				events[3] = i[chordTones[3]];
 			}
 			
-			Game.flamNotes.reverse();
 			Game.flamTimer.start();
 			
-			HUD.logMode();
-			HUD.logEvent(chordTones);
-			
-			if (type == "Transpose")
-			{
-				var sound:FlxSound;
-				var g:uint = 0;
-				
-				// Run through all sounds.
-				outerLoop: while (g < FlxG.sounds.length)
-				{
-					sound = FlxG.sounds.members[g++] as FlxSound;
-					
-					// If the sound has volume,
-					if (sound != null && sound.active == true)
-					{
-						// Compare to current key notes.
-						for each (var note:Class in i)
-						{
-							if (sound.classType == note)
-								continue outerLoop;
-						}
-						
-						// If a note made it this far, it's not in the current key, so fade it out. 
-						sound.fadeOut(0.2);	
-					}
-				}
-				
-			}
-		}
-				
-		final protected function playOctave():void
-		{		
-			var octaveTone: Class;
-			
-			outerLoop: for (var i:int = 0; i <= Note.DATABASE.length - 1; i++)
-			{								
-				if (Note.lastAbsolute == Note.DATABASE[i])
-				{
-					while (octaveTone == null)
-						octaveTone = Note.DATABASE[i + Helper.pickFrom(12, -12)] as Class;
-					
-					break outerLoop;
-				}
-			}
-			
-			var octave:FlxSound = FlxG.loadSound(octaveTone, Octave.VOLUME, -1*pan);
-			Game.flamNotes.push(octave);
-			Game.flamTimer.start();
-			Note.lastOctave = octaveTone;
-			
-			MIDI.log(octaveTone, Octave.VOLUME);
-		}
-			
-		final protected function playHarmonyTone():void
-		{					
-			var harmonyTone: Class;
-			var choices: Array = [];	
-			var i:Object = Intervals.loadout;
-			
-				 if (Note.lastAbsolute == i.one1) choices = [i.thr1, i.fiv1, i.thr2, i.fiv2];
-			else if (Note.lastAbsolute == i.two1) choices = [i.fiv1, i.sev1, i.fiv2];
-			else if (Note.lastAbsolute == i.thr1) choices = [i.fiv1, i.one2];
-			else if (Note.lastAbsolute == i.for1) choices = [i.fiv1, i.one2, i.two2];
-			else if (Note.lastAbsolute == i.fiv1) choices = [i.thr1, i.sev1, i.thr2];
-			else if (Note.lastAbsolute == i.six1) choices = [i.one2, i.thr2];
-			else if (Note.lastAbsolute == i.sev1) choices = [i.thr1, i.fiv1, i.thr2];
-			else if (Note.lastAbsolute == i.one2) choices = [i.fiv1, i.thr2, i.fiv2];
-			else if (Note.lastAbsolute == i.two2) choices = [i.fiv1, i.fiv2, i.sev2];
-			else if (Note.lastAbsolute == i.thr2) choices = [i.sev1, i.one2, i.fiv2, i.sev2, i.one3];
-			else if (Note.lastAbsolute == i.for2) choices = [i.two2, i.fiv2, i.one3];
-			else if (Note.lastAbsolute == i.fiv2) choices = [i.thr2, i.sev2, i.thr3];
-			else if (Note.lastAbsolute == i.six2) choices = [i.one3, i.thr3];
-			else if (Note.lastAbsolute == i.sev2) choices = [i.thr2, i.fiv2, i.thr3];
-			else if (Note.lastAbsolute == i.one3) choices = [i.thr2, i.fiv2, i.thr3, i.fiv3];
-			else if (Note.lastAbsolute == i.two3) choices = [i.fiv2, i.sev2, i.fiv3];
-			else if (Note.lastAbsolute == i.thr3) choices = [i.sev2, i.one3, i.fiv3, i.sev3, i.one4];
-			else if (Note.lastAbsolute == i.for3) choices = [i.two3, i.fiv3, i.one4];
-			else if (Note.lastAbsolute == i.fiv3) choices = [i.thr3, i.sev3, i.one4];
-			else if (Note.lastAbsolute == i.six3) choices = [i.thr3, i.one4];
-			else if (Note.lastAbsolute == i.sev3) choices = [i.thr3, i.fiv3];
-			else if (Note.lastAbsolute == i.one4) choices = [i.thr3, i.fiv3];
-				 
-			harmonyTone = choices[Helper.randInt(0, choices.length - 1)];
-			
-			var harmony:FlxSound = FlxG.loadSound(harmonyTone, Harmony.VOLUME, -1*pan);
-			Game.flamNotes.push(harmony);
-			Game.flamTimer.start();
-			Note.lastHarmony = harmonyTone;
-			
-			MIDI.log(harmonyTone, Harmony.VOLUME);
+			HUD.logMode();			
+			HUD.logEvent(events);
 		}
 		
 		final protected function playPedalTone():void
-		{
-			var i:Object = Intervals.loadout;
-			
+		{	
 			var pedalTone:Class = Note.lastAbsolute;
 			
-			while (Note.lastAbsolute == pedalTone || Note.lastPedal == pedalTone)
-				pedalTone = Helper.pickFrom(i.one1, i.fiv1, i.one2, i.fiv2, i.thr3);
+			while (pedalTone == Note.lastAbsolute 
+				|| pedalTone == Note.lastPedal
+				||(pedalTone == Note.lastOctave && type == "Octave")
+				||(pedalTone == Note.lastHarmony && type == "Harmony"))
+			{
+				pedalTone = Helper.pickFrom(i.one1, i.fiv1, i.one2, i.fiv2);
+			}
 			
-			FlxG.play(pedalTone, volume/2, 0);
+			if (timbre == "Primary")
+				FlxG.play(pedalTone, volume/2, 0);
+			else
+			{
+				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(pedalTone) ) as Class;
+				FlxG.play(modifiedNote, volume/(2 + _volumeMod), 0);
+			}
+			
 			Note.lastPedal = pedalTone;
+			MIDI.log(pedalTone, volume/2);
 		}
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		// MODE FUNCTIONS //////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		final protected function ionian():void
+		/** Uses the option sets of the current mode to choose which note to generate. */
+		final protected function generateNote():void
 		{
-				var i:Object = Intervals.loadout;
+			var played: Boolean;
+			var optionSets: Array = Mode.current.logic;
 			
-					 if (Note.lastRecorded == i.one1) 	_play(i.two1, i.thr1, i.fiv1, i.two2, i.thr2);
-				else if (Note.lastRecorded == i.two1)	_play(i.fiv1, i.sev1);
-				else if (Note.lastRecorded == i.thr1)	_play(i.fiv1, i.sev1, i.one1);
-				else if (Note.lastRecorded == i.for1)	_play(i.thr1, i.fiv1, i.one2);
-				else if (Note.lastRecorded == i.fiv1)	_play(i.one1, i.thr1, i.for1, i.six1, i.sev1, i.one2, i.two2, i.thr2);
-				else if (Note.lastRecorded == i.six1)	_play(i.one1, i.fiv1, i.sev1, i.one2, i.thr2, i.for2);
-				else if (Note.lastRecorded == i.sev1)	_play(i.fiv1, i.one2, i.thr2);
-				else if (Note.lastRecorded == i.one2)	_play(i.one1, i.thr1, i.two2, i.thr2, i.fiv2, i.thr3, i.sev2, i.sev1, i.six1);
-				else if (Note.lastRecorded == i.two2)	_play(i.one2, i.thr2, i.fiv2, i.sev2);
-				else if (Note.lastRecorded == i.thr2)	_play(i.two2, i.for2, i.fiv2, i.sev2, i.one2, i.six1, i.fiv1);
-				else if (Note.lastRecorded == i.for2)	_play(i.thr2, i.fiv2, i.one3, i.six1);
-				else if (Note.lastRecorded == i.fiv2)	_play(i.one2, i.thr2, i.for2, i.six2, i.sev2, i.thr3, i.sev2, i.sev3, i.two3);
-				else if (Note.lastRecorded == i.six2)	_play(i.one2, i.fiv2, i.sev2, i.one3);
-				else if (Note.lastRecorded == i.sev2)	_play(i.fiv2, i.one3);
-				else if (Note.lastRecorded == i.one3)	_play(i.one2, i.two3, i.thr3, i.fiv3, i.thr2, i.for2, i.sev2, i.six2);
-				else if (Note.lastRecorded == i.two3)	_play(i.one3, i.thr3, i.fiv3, i.sev3);
-				else if (Note.lastRecorded == i.thr3)	_play(i.fiv2, i.two3, i.for3, i.fiv3, i.sev3, i.one3);
-				else if (Note.lastRecorded == i.for3)	_play(i.thr3, i.fiv3, i.one4);	
-				else if (Note.lastRecorded == i.fiv3)	_play(i.one3, i.thr3, i.for3, i.six3, i.sev3, i.one4);
-				else if (Note.lastRecorded == i.six3)	_play(i.one3, i.fiv3, i.sev3, i.one4);
-				else if (Note.lastRecorded == i.sev3)	_play(i.fiv3, i.one4);
-				else if (Note.lastRecorded == i.one4)	_play(i.one2, i.thr3, i.for3, i.fiv3, i.sev3, i.one3);
+			loop: for (var j:int = 0; j < Intervals.DATABASE.length - 1; j++)
+			{				
+				if (Note.lastRecorded == i[Intervals.DATABASE[j]])
+				{					
+					_play(optionSets[j]);
+					played = true;
 					
-												else	_play(i.one2, i.one3);
-		}
-		
-		final protected function dorian():void
-		{
-			var i:Object = Intervals.loadout;
+					break loop;
+				}
+			}
 			
-				 if (Note.lastRecorded == i.one1) 	_play(i.two1, i.thr1, i.for1, i.fiv1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.fiv2);
-			else if (Note.lastRecorded == i.two1)	_play(i.fiv1, i.six1, i.sev1);
-			else if (Note.lastRecorded == i.thr1)	_play(i.one1, i.for1, i.fiv1, i.six1, i.sev1, i.one2, i.thr2, i.two2, i.fiv2);
-			else if (Note.lastRecorded == i.for1)	_play(i.fiv1, i.six1, i.sev1, i.one2, i.thr2);
-			else if (Note.lastRecorded == i.fiv1)	_play(i.two1, i.thr1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.fiv2, i.sev2);
-			else if (Note.lastRecorded == i.six1)	_play(i.one1, i.for1, i.fiv1, i.sev1, i.one2, i.for2, i.fiv2);
-			else if (Note.lastRecorded == i.sev1)	_play(i.thr1, i.fiv1, i.six1, i.one2, i.two2, i.thr2, i.fiv2, i.sev2);
-			else if (Note.lastRecorded == i.one2)	_play(i.one1, i.thr1, i.for1, i.fiv1, i.sev1, i.two2, i.thr2, i.fiv2, i.sev2, i.one3, i.two3, i.thr3, i.fiv3);
-			else if (Note.lastRecorded == i.two2)	_play(i.fiv1, i.one2, i.thr2, i.fiv2, i.sev2, i.two3);
-			else if (Note.lastRecorded == i.thr2)	_play(i.thr1, i.fiv1, i.six1, i.sev1, i.one2, i.two2, i.for2, i.fiv2, i.six2, i.sev2, i.one3, i.thr3);
-			else if (Note.lastRecorded == i.for2)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.two3, i.six1);
-			else if (Note.lastRecorded == i.fiv2)	_play(i.thr1, i.fiv1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.six2, i.sev2, i.one3, i.two3, i.thr3);
-			else if (Note.lastRecorded == i.six2)	_play(i.for1, i.six1, i.for2, i.fiv2, i.sev2, i.one3, i.thr3, i.for3, i.six3);
-			else if (Note.lastRecorded == i.sev2)	_play(i.sev1, i.thr2, i.fiv2, i.six2, i.one3, i.two3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.one3)	_play(i.one1, i.fiv1, i.six1, i.one2, i.thr2, i.fiv2, i.six2, i.sev2, i.two3, i.thr3, i.fiv3, i.one4);
-			else if (Note.lastRecorded == i.two3)	_play(i.two2, i.fiv2, i.one3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.thr3)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.one3, i.two3, i.for3, i.fiv3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.for3)	_play(i.six2, i.thr3, i.fiv3, i.six3, i.sev3);	
-			else if (Note.lastRecorded == i.fiv3)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.one3, i.two3, i.thr3, i.for3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.six3)	_play(i.for2, i.six2, i.for3, i.fiv3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.sev3)	_play(i.sev2, i.thr3, i.fiv3, i.six3, i.one4);
-			else if (Note.lastRecorded == i.one4)	_play(i.six2, i.one3, i.thr3, i.for3, i.fiv3, i.six3, i.sev3);
-				
-											else	_play(i.one1, i.one2, i.one3);
-		}
-		
-		final protected function lydian():void
-		{
-			var i:Object = Intervals.loadout;
-			
-				 if (Note.lastRecorded == i.one1) 	_play(i.two1, i.thr1, i.fiv1, i.two2, i.thr2);
-			else if (Note.lastRecorded == i.two1)	_play(i.fiv1, i.sev1);
-			else if (Note.lastRecorded == i.thr1)	_play(i.for1, i.fiv1, i.sev1, i.one1);
-			else if (Note.lastRecorded == i.for1)	_play(i.thr1, i.fiv1, i.two2);
-			else if (Note.lastRecorded == i.fiv1)	_play(i.one1, i.thr1, i.for1, i.six1, i.sev1, i.one2, i.two2, i.thr2);
-			else if (Note.lastRecorded == i.six1)	_play(i.one1, i.for1, i.fiv1, i.sev1, i.one2, i.thr2);
-			else if (Note.lastRecorded == i.sev1)	_play(i.fiv1, i.one2, i.thr2);
-			else if (Note.lastRecorded == i.one2)	_play(i.one1, i.thr1, i.for1, i.two2, i.thr2, i.fiv2, i.thr3, i.sev2, i.sev1, i.six1);
-			else if (Note.lastRecorded == i.two2)	_play(i.one2, i.thr2, i.fiv2, i.sev2);
-			else if (Note.lastRecorded == i.thr2)	_play(i.two2, i.for2, i.fiv2, i.sev2, i.one2, i.one3, i.thr1, i.six1, i.fiv1);
-			else if (Note.lastRecorded == i.for2)	_play(i.thr2, i.fiv2, i.two3, i.six1);
-			else if (Note.lastRecorded == i.fiv2)	_play(i.one2, i.thr3, i.thr2, i.six2, i.sev2, i.two3);
-			else if (Note.lastRecorded == i.six2)	_play(i.one2, i.fiv2, i.sev2, i.one3);
-			else if (Note.lastRecorded == i.sev2)	_play(i.fiv2, i.one3);
-			else if (Note.lastRecorded == i.one3)	_play(i.one2, i.two3, i.thr3, i.fiv3, i.thr2, i.for2, i.sev2, i.six2);
-			else if (Note.lastRecorded == i.two3)	_play(i.one3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.thr3)	_play(i.fiv2, i.two3, i.for3, i.fiv3, i.sev3, i.one3);
-			else if (Note.lastRecorded == i.for3)	_play(i.thr3, i.fiv3, i.six2);	
-			else if (Note.lastRecorded == i.fiv3)	_play(i.one3, i.thr3, i.for3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.six3)	_play(i.one3, i.fiv3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.sev3)	_play(i.fiv3, i.one4);
-			else if (Note.lastRecorded == i.one4)	_play(i.one2, i.thr3, i.for3, i.fiv3, i.sev3, i.one3);
-				
-											else	_play(i.one2, i.one3);
-		}
-		
-		final protected function mixolydian():void
-		{
-			var i:Object = Intervals.loadout;
-			
-				 if (Note.lastRecorded == i.one1) 	_play(i.two1, i.thr1, i.fiv1, i.sev1, i.two2, i.thr2);
-			else if (Note.lastRecorded == i.two1)	_play(i.fiv1, i.sev1);
-			else if (Note.lastRecorded == i.thr1)	_play(i.for1, i.fiv1, i.sev1, i.one1);
-			else if (Note.lastRecorded == i.for1)	_play(i.thr1, i.fiv1, i.sev1, i.two2);
-			else if (Note.lastRecorded == i.fiv1)	_play(i.one1, i.thr1, i.for1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2);
-			else if (Note.lastRecorded == i.six1)	_play(i.one1, i.fiv1, i.sev1, i.one2, i.thr2);
-			else if (Note.lastRecorded == i.sev1)	_play(i.fiv1, i.one2, i.two2, i.thr2);
-			else if (Note.lastRecorded == i.one2)	_play(i.one1, i.thr1, i.for1, i.two2, i.thr2, i.fiv2, i.thr3, i.sev2, i.sev1, i.six1);
-			else if (Note.lastRecorded == i.two2)	_play(i.one2, i.thr2, i.fiv2, i.sev2);
-			else if (Note.lastRecorded == i.thr2)	_play(i.two2, i.for2, i.fiv2, i.sev2, i.one2, i.one3, i.thr1, i.six1, i.fiv1, i.sev1);
-			else if (Note.lastRecorded == i.for2)	_play(i.thr2, i.fiv2, i.two3, i.six1, i.sev1, i.sev2);
-			else if (Note.lastRecorded == i.fiv2)	_play(i.one2, i.thr3, i.six2, i.thr2, i.sev2, i.two3);
-			else if (Note.lastRecorded == i.six2)	_play(i.one2, i.fiv2, i.sev2, i.one3, i.thr3);
-			else if (Note.lastRecorded == i.sev2)	_play(i.fiv2, i.one3, i.two2, i.two3, i.thr3, i.sev3, i.sev1);
-			else if (Note.lastRecorded == i.one3)	_play(i.one2, i.two3, i.thr3, i.fiv3, i.thr2, i.for2, i.sev2, i.six2);
-			else if (Note.lastRecorded == i.two3)	_play(i.one3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.thr3)	_play(i.fiv2, i.two3, i.for3, i.fiv3, i.sev3, i.one3);
-			else if (Note.lastRecorded == i.for3)	_play(i.thr3, i.fiv3, i.sev3, i.six2, i.sev2);	
-			else if (Note.lastRecorded == i.fiv3)	_play(i.one3, i.thr3, i.for3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.six3)	_play(i.one3, i.fiv3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.sev3)	_play(i.two3, i.sev2, i.fiv3, i.one4);
-			else if (Note.lastRecorded == i.one4)	_play(i.one2, i.thr3, i.fiv3, i.sev3, i.one3);
-				
-											else	_play(i.one2, i.one3);
-		}
-		
-		final protected function aeolian():void
-		{
-			var i:Object = Intervals.loadout;
-			
-				 if (Note.lastRecorded == i.one1) 	_play(i.two1, i.thr1, i.for1, i.fiv1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.fiv2);
-			else if (Note.lastRecorded == i.two1)	_play(i.fiv1, i.sev1);
-			else if (Note.lastRecorded == i.thr1)	_play(i.one1, i.for1, i.fiv1, i.six1, i.sev1, i.one2, i.thr2, i.two2, i.fiv2);
-			else if (Note.lastRecorded == i.for1)	_play(i.fiv1, i.six1, i.sev1, i.one2, i.thr2);
-			else if (Note.lastRecorded == i.fiv1)	_play(i.two1, i.thr1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.fiv2);
-			else if (Note.lastRecorded == i.six1)	_play(i.one1, i.for1, i.fiv1, i.sev1, i.one2, i.thr2, i.for2, i.fiv2);
-			else if (Note.lastRecorded == i.sev1)	_play(i.thr1, i.fiv1, i.six1, i.one2, i.two2, i.thr2, i.fiv2, i.sev2);
-			else if (Note.lastRecorded == i.one2)	_play(i.one1, i.thr1, i.for1, i.fiv1, i.six1, i.sev1, i.two2, i.thr2, i.for2, i.fiv2, i.six2, i.sev2, i.one3, i.two3, i.thr3, i.for3, i.fiv3);
-			else if (Note.lastRecorded == i.two2)	_play(i.fiv1, i.sev1, i.one2, i.thr2, i.fiv2, i.sev2, i.two3);
-			else if (Note.lastRecorded == i.thr2)	_play(i.thr1, i.fiv1, i.six1, i.sev1, i.one2, i.two2, i.for2, i.fiv2, i.six2, i.sev2, i.one3, i.thr3);
-			else if (Note.lastRecorded == i.for2)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.two3, i.six1);
-			else if (Note.lastRecorded == i.fiv2)	_play(i.thr1, i.fiv1, i.six1, i.sev1, i.one2, i.two2, i.thr2, i.for2, i.six2, i.sev2, i.one3, i.two3, i.thr3);
-			else if (Note.lastRecorded == i.six2)	_play(i.for1, i.six1, i.for2, i.fiv2, i.sev2, i.one3, i.thr3, i.for3, i.six3);
-			else if (Note.lastRecorded == i.sev2)	_play(i.sev1, i.thr2, i.fiv2, i.six2, i.one3, i.two3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.one3)	_play(i.one1, i.for1, i.fiv1, i.six1, i.one2, i.thr2, i.fiv2, i.six2, i.sev2, i.two3, i.thr3, i.for3, i.fiv3, i.six3, i.one4);
-			else if (Note.lastRecorded == i.two3)	_play(i.two2, i.fiv2, i.sev2, i.one3, i.thr3, i.fiv3, i.sev3);
-			else if (Note.lastRecorded == i.thr3)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.one3, i.two3, i.for3, i.fiv3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.for3)	_play(i.six2, i.thr3, i.fiv3, i.six3, i.sev3);	
-			else if (Note.lastRecorded == i.fiv3)	_play(i.thr2, i.fiv2, i.six2, i.sev2, i.one3, i.two3, i.thr3, i.for3, i.six3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.six3)	_play(i.for2, i.six2, i.for3, i.fiv3, i.sev3, i.one4);
-			else if (Note.lastRecorded == i.sev3)	_play(i.sev2, i.thr3, i.fiv3, i.six3, i.one4);
-			else if (Note.lastRecorded == i.one4)	_play(i.six2, i.one3, i.thr3, i.for3, i.fiv3, i.six3, i.sev3);
-				
-											else	_play(i.one1, i.one2, i.one3);
+			if (played == false)
+				_play(optionSets[22]);	// [22] is the else statement.
 		}
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -760,6 +508,62 @@ package january
 			// Convert x position to pan position.
 			pan = 2 * ((this.x - Camera.lens.scroll.x) / FlxG.width) - 1;
 		}
-
+		
+		final protected function noteAdjustments(options: Array):Class
+		{
+			var note: Class;
+			var random: int;
+			
+			// NOTE PREVENTIONS
+			while (note == null
+				|| note == Note.lastAbsolute
+				|| (note == Note.lastHarmony && lastLickedType == "Harmony")
+				|| (note == Note.lastOctave && lastLickedType == "Octave")
+				|| (type == "Octave" && (note == i.for1 || note == i.for2 || note == i.for3)) )
+			{
+				random = Helper.randInt(0, options.length - 1);
+				note = i[options[random]] as Class;
+			}
+			
+			// Separate check for preventing trills, at a probability of X : 1, where X is total number of options
+			if (note == Note.secondToLastRecorded)
+			{
+				random = Helper.randInt(0, options.length - 1);
+				note = i[options[random]] as Class;
+			}
+			
+			// Prevent certain tensions from triggering on record mode key changes
+			if (Key.justChanged
+				&& Mode.current != Mode.MIXOLYDIAN
+				&& (note == i.two1 ||
+					note == i.for1 ||
+					note == i.six1 ||
+					note == i.for2 ||
+					note == i.six2 ||
+					note == i.for3 ||
+					note == i.six3) )
+			{	
+				outerLoop: for (var desc:* in i)
+				{				
+					if (note == i[desc])
+					{
+						for (var j:int = 0; j < Intervals.DATABASE.length - 1; j++)
+						{
+							if (i[desc] == Intervals.DATABASE[j])
+							{
+								// change new note to be +/- 1 interval if the key just changed.
+								note = i[Intervals.DATABASE[j + FlxMath.randomSign()]];	
+								break outerLoop;
+							}
+						}
+					}
+				}
+				
+				Key.justChanged = false;
+			}
+		
+			return note;
+			
+		}
 	}
 }

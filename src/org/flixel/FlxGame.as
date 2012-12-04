@@ -190,7 +190,7 @@ package org.flixel
 			_accumulator = _step;
 			_total = 0;
 			_state = null;
-			useSoundHotKeys = true;
+			useSoundHotKeys = false;			// changed to false.
 			useSystemCursor = UseSystemCursor;
 			if(!useSystemCursor)
 				flash.ui.Mouse.hide();

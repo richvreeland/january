@@ -16,7 +16,7 @@ package january.colorlayers
 		
 		override public function onLick():void
 		{			
-			if (layerOn == false && Playback.mode == true) //10
+			if (layerOn == false && Snowflake.mode == "Playback") //10
 			{
 				alphaUp(45, 0.85); //120
 				layerOn = true;

@@ -8,6 +8,7 @@ package january
 		public function Preloader()
 		{
 			className = "january.January";
+			//myURL = "http://colorcave.com";
 			super();
 		}
 	}

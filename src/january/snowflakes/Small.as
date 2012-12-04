@@ -21,6 +21,8 @@ package january.snowflakes
 			
 			addAnimation("default",[0],0,false);
 			addAnimation("firefly",[1],0,false);
+			
+			pedalAllowed = true;
 		}
 		
 		public override function onLick():void

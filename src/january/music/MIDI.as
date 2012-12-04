@@ -60,9 +60,11 @@ package january.music
 		/** PART 4. The total number of bytes used by track events and the track footer. */
 		private static var trackByteTotal : uint; // 32-bit, ie. 00 00 00 00
 		/** PART 5. An array which will populate Track Events. */
-		private static var trackEvents	  : Array = [];	
+		public static var trackEvents	  : Array = [];	
 		/** PART 6. The footer for the MIDI file. */
 		private static const TRACK_FOOTER : Array = [0,255,47,0];	//7F B0 7B 00
+		
+		private static var instrument: int = 0;
 		
 		/** The MIDI file, stored as bytes. */
 		private static var bytes : ByteArray = new ByteArray();
@@ -82,19 +84,32 @@ package january.music
 		public static var logged			 : Boolean;
 		/** An object full of the various note values that have been recorded, used to prevent overlaps. */
 		private static var pitchesHeard		 : Object = {};
+		/** An object full of the various note values that have been recorded, used to prevent overlaps. */
+		private static var pitchesHeard2	 : Object = {};
 		/** Note Ons that haven't been set to Note Off yet. */
 		private static var unresolvedPitches : Array = [];
+		/** Note Ons that haven't been set to Note Off yet. */
+		private static var unresolvedPitches2 : Array = [];
 		
 		public static function generate():void
 		{						
+			// Add Note Off Delay for First Note.
+			trackEvents.push(132);
+			
 			// Push Note Off Messages for all the Unresolved Note Ons.
-			for (var h:int = 0; h < unresolvedPitches.length; h++)
+			for (var g:int = 0; g < unresolvedPitches.length; g++)
 			{
-				if (h == 0)
-					trackEvents.push(132);
 				trackEvents.push(0);
 				trackEvents.push(128);
-				trackEvents.push(unresolvedPitches[h]);
+				trackEvents.push(unresolvedPitches[g]);
+				trackEvents.push(127);
+			}
+			
+			for (var h:int = 0; h < unresolvedPitches2.length; h++)
+			{
+				trackEvents.push(0);
+				trackEvents.push(129);
+				trackEvents.push(unresolvedPitches2[h]);
 				trackEvents.push(127);
 			}
 			
@@ -129,7 +144,7 @@ package january.music
 		}
 		
 		public static function log(sound:Class, velocity:Number):void
-		{			
+		{						
 			if (sound != null)
 			{
 				for (var i:int = 0; i < Note.DATABASE.length; i++)
@@ -143,20 +158,16 @@ package january.music
 				velocity = (1 / Note.MAX_VOLUME) * velocity * 127;
 				
 				for (var j:int = 0; j < timeBytes.length; j++)
-					trackEvents.push(timeBytes[j]);				//	NOTE TIME (SINCE LAST)
-				trackEvents.push(144);							//	NOTE ON
-				trackEvents.push(pitch);						//	NOTE PITCH
-				trackEvents.push(velocity);						//	NOTE VELOCITY
-				timer = time = 0;
+					trackEvents.push(timeBytes[j]);		//	EVENT TIME (SINCE LAST)
 				
 				// If we've already heard this pitch before,
-				if (pitchesHeard[pitch] != null)
+				if (Snowflake.timbre != "Secondary" && pitchesHeard[pitch] != null)
 				{
 					// Add a note off event.
-					trackEvents.push(0);		// TIME
 					trackEvents.push(128);		// NOTE OFF 
 					trackEvents.push(pitch);	// PITCH
-					trackEvents.push(127);		// RELEASE VELOCITY					
+					trackEvents.push(127);		// RELEASE VELOCITY
+					trackEvents.push(0);		// EVENT TIME (FOR PRECEDING NOTE ON)
 				}
 				else
 				{
@@ -164,7 +175,32 @@ package january.music
 					pitchesHeard[pitch] = pitch;
 					// Push the pitch to the list of unresolved note ons.
 					unresolvedPitches.push(pitch);
-				}		
+				}
+				
+				if (Snowflake.timbre == "Secondary" && pitchesHeard2[pitch] != null)
+				{
+					// Add a note off event.
+					trackEvents.push(129);		// NOTE OFF 
+					trackEvents.push(pitch);	// PITCH
+					trackEvents.push(127);		// RELEASE VELOCITY
+					trackEvents.push(0);		// EVENT TIME (FOR PRECEDING NOTE ON)
+				}
+				else
+				{
+					// Add to the array of heard pitches.
+					pitchesHeard2[pitch] = pitch;
+					// Push the pitch to the list of unresolved note ons.
+					unresolvedPitches2.push(pitch);
+				}
+				
+				if (Snowflake.timbre == "Secondary")
+					trackEvents.push(145);				//	NOTE ON
+				else
+					trackEvents.push(144);				//	NOTE ON
+				
+				trackEvents.push(pitch);				//	NOTE PITCH
+				trackEvents.push(velocity);				//	NOTE VELOCITY
+				timer = time = 0;
 				
 				logged = true;
 			}

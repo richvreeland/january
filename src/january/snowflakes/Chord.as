@@ -2,6 +2,7 @@ package january.snowflakes
 {
 	import january.*;
 	import january.music.*;
+	import org.flixel.*;
 	
 	public class Chord extends Snowflake
 	{	
@@ -35,6 +36,14 @@ package january.snowflakes
 			Mode.change();
 			playNote();
 			playChord();
+		}
+		
+		protected override function spawn(flakeType: String, spawnX: Number = 0):void
+		{
+			// Spawn only in right two thirds of screen.
+			spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX + (FlxG.width/3), Camera.anchor.x);
+			
+			super.spawn(flakeType, spawnX);
 		}
 		
 		public override function update():void

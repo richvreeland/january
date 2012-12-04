@@ -1,8 +1,8 @@
 package january.snowflakes
 {
+	import flash.utils.*;	
 	import january.*;
 	import january.music.*;
-	
 	import org.flixel.*;
 	
 	public class Octave extends Snowflake
@@ -29,6 +29,8 @@ package january.snowflakes
 			
 			addAnimation("default", [0],0,false);
 			addAnimation("firefly", [1],0,false);
+			
+			pedalAllowed = true;
 		}
 		
 		public override function onLick():void
@@ -36,7 +38,47 @@ package january.snowflakes
 			super.onLick();
 			
 			playNote();	
-			playOctave();				
+			playOctave();
+		}
+		
+		private function playOctave():void
+		{		
+			var octaveTone: Class;
+			
+			outerLoop: for (var i:int = 0; i <= Note.DATABASE.length - 1; i++)
+			{								
+				if (Note.lastAbsolute == Note.DATABASE[i])
+				{
+					while (octaveTone == null)
+						octaveTone = Note.DATABASE[i + Helper.pickFrom(12, -12)] as Class;
+					
+					break outerLoop;
+				}
+			}
+			
+			var octave:FlxSound;
+			
+			if (timbre == "Primary")
+				octave = FlxG.loadSound(octaveTone, Octave.VOLUME, -1*pan);
+			else
+			{
+				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(octaveTone) ) as Class;
+				octave = FlxG.loadSound(modifiedNote, Octave.VOLUME/_volumeMod, -1*pan);
+			}
+			
+			Game.flamNotes.push(octave);
+			Game.flamTimer.start();
+			
+			// LOGS
+			Note.lastOctave = octaveTone;
+			MIDI.log(octaveTone, Octave.VOLUME);
+		}
+		
+		protected override function spawn(flakeType:String, spawnX:Number=0):void
+		{
+			spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x);
+			
+			super.spawn(flakeType, spawnX);
 		}
 		
 		public override function update():void

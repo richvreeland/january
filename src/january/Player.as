@@ -35,11 +35,12 @@ package january
 			boundsLeft = 2;
 			
 			// Add animations.
-			addAnimation("idle", [19,16,18,17,15,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 6);
-			addAnimation("tongueUp", [1,2], 12, false);//12, false);
-			addAnimation("tongueDown", [1,0], 12, false);//12, false);
-			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 7);
-			addAnimation("walkTongue", [11, 12, 13, 20, 21, 22, 23, 24], 7);
+			addAnimation("idle", [19,16,18,17,15,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 6);			
+			addAnimation("tongueUpStopped", [2,27,26,25,28], 6, false);
+			addAnimation("tongueUp", [1,28], 12, false);
+			addAnimation("tongueDown", [1,0], 12, false);
+			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 6);
+			addAnimation("walkTongue", [12, 13, 20, 21, 22, 23, 24, 11], 6);
 		}
 		
 		override public function update():void
@@ -48,18 +49,24 @@ package january
 			// MOVEMENT //
 			//////////////
 			
-			maxVelocity.x = 27;
 			acceleration.x = 0;
+			
+			if (frame == 4 || frame == 8 || frame == 19 || frame == 23)
+				maxVelocity.x = 15;
+			else
+				maxVelocity.x = 27;
 			
 			if (FlxG.keys.LEFT || FlxG.keys.A)
 			{	
 				facing = LEFT;
+				Snowflake.timbre = "Secondary";
 				drag.x = 5000;
 				acceleration.x -= drag.x;
 			}
 			else if (FlxG.keys.RIGHT || FlxG.keys.D)
 			{
 				facing = RIGHT;
+				Snowflake.timbre = "Primary";
 				drag.x = 5000;
 				acceleration.x += drag.x;
 			}
@@ -103,7 +110,7 @@ package january
 					if (tongueUp == false)
 						play("idle");
 					else
-						frame = 2;
+						play("tongueUpStopped");
 				}
 				
 				stopped = false;

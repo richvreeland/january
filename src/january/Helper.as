@@ -20,13 +20,20 @@ package january
 		}
 		
 		/** Pick a random choice from a series of options. */
-		public static function pickFrom(... options:Array):*
+		public static function pickFrom(... options):*
 		{
 			return options[Math.round(Math.random()*(options.length - 1))];
 		}
 		
+		/** Returns a member of a nested array. */
+		public static function pickNested(options: Array):*
+		{
+			var nested: Array = options[ Math.round(Math.random() * (options.length - 1)) ];
+			return pickFrom(nested);
+		}
+		
 		/** Will pull a random object from an array and return it. */
-		public static function randomPull(Objects:Array,StartIndex:uint=0,Length:uint=0):*
+		public static function randomPull(Objects: Array,StartIndex:uint=0,Length:uint=0):*
 		{
 			if(Objects != null)
 			{

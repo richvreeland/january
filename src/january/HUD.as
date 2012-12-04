@@ -1,7 +1,6 @@
 package january
 {
-	import january.music.*;
-	
+	import january.music.*;	
 	import org.flixel.*;
 	
 	public class HUD
@@ -12,8 +11,8 @@ package january
 		public static var modeData: FlxText;
 		/** Current mode in fancy form, with key and proper capitalization. */
 		public static var modeName: String;
-		/** The text sprite that holds key name, key quality, etc. */
-		public static var keysData: FlxText;
+		/** The text sprite that holds chord information, etc. */
+		public static var chordData: FlxText;
 		/** The "Save as MIDI" button. */
 		public static var midiButton: Button;
 		/** The font used for HUD objects. */
@@ -26,13 +25,13 @@ package january
 		{				
 			noteData = new FlxText(9, -1, 256, "Note: ");
 			modeData = new FlxText(8, 9, 256, "Mode: ");
-			keysData = new FlxText(4, 19, 256, "Chord: ");
+			chordData = new FlxText(4, 19, 256, "Chord: ");
 			midiButton = new Button();
 			midiButton.x = FlxG.width - midiButton.width - 3;
 			midiButton.y = 3;
-			noteData.scrollFactor.x = modeData.scrollFactor.x = keysData.scrollFactor.x = 0;
-			noteData.font = modeData.font = keysData.font = FONT;
-			noteData.exists = modeData.exists = keysData.exists = false;			
+			noteData.scrollFactor.x = modeData.scrollFactor.x = chordData.scrollFactor.x = 0;
+			noteData.font = modeData.font = chordData.font = FONT;
+			noteData.exists = modeData.exists = chordData.exists = false;			
 		}
 		
 		/** Turns HUD on or off. */ 
@@ -40,7 +39,7 @@ package january
 		{
 			// Press H to Toggle HUD.
 			if(FlxG.keys.justPressed("H") && Game.end == false)		
-				noteData.exists = modeData.exists = keysData.exists = !keysData.exists;
+				noteData.exists = modeData.exists = chordData.exists = !chordData.exists;
 			
 			// Press M to Toggle MIDI Save Button.
 			if(FlxG.keys.justPressed("M"))
@@ -95,33 +94,33 @@ package january
 
 			if (Key.current == "C Major")
 			{
-				if (Mode.current == "ionian")
+				if (Mode.current == Mode.IONIAN)
 					keyLetter = "C";
-				else if (Mode.current == "dorian")
+				else if (Mode.current == Mode.DORIAN)
 					keyLetter = "D";
-				else if (Mode.current == "lydian")
+				else if (Mode.current == Mode.LYDIAN)
 					keyLetter = "F";
-				else if (Mode.current == "mixolydian")
+				else if (Mode.current == Mode.MIXOLYDIAN)
 					keyLetter = "G";
-				else if (Mode.current == "aeolian")
+				else if (Mode.current == Mode.AEOLIAN)
 					keyLetter = "A";
 			}
 			else if (Key.current == "C Minor")
 			{
-				if (Mode.current == "ionian")
+				if (Mode.current == Mode.IONIAN)
 					keyLetter = "Eb";
-				else if (Mode.current == "dorian")
+				else if (Mode.current == Mode.DORIAN)
 					keyLetter = "F";
-				else if (Mode.current == "lydian")
+				else if (Mode.current == Mode.LYDIAN)
 					keyLetter = "Ab";
-				else if (Mode.current == "mixolydian")
+				else if (Mode.current == Mode.MIXOLYDIAN)
 					keyLetter = "Bb";
-				else if (Mode.current == "aeolian")
+				else if (Mode.current == Mode.AEOLIAN)
 					keyLetter = "C";
 			}
 			
-			var firstLetter:String = Mode.current.substr(0, 1);
-			var restOfString:String = Mode.current.substr(1, Mode.current.length);
+			var firstLetter:String = Mode.current.name.substr(0, 1);
+			var restOfString:String = Mode.current.name.substr(1, Mode.current.name.length);
 			modeName = keyLetter + " " + firstLetter.toUpperCase() + restOfString.toLowerCase();
 			modeData.text = "Mode: " + modeName;
 		}
@@ -129,19 +128,21 @@ package january
 		/** Logs Key Data to HUD. */		
 		public static function logEvent(chordTones:Array = null):void
 		{
+			//FlxG.log("logEvent()");
+			
 			if (chordTones != null)
 			{
 				var chordName: String = "";
 				for (var i:int = 0; i <= chordTones.length - 1; i++)
 				{
 					var actualName: String = String(chordTones[i]);
-					actualName = actualName.slice(12);
+					actualName = actualName.slice(7);
 					actualName = actualName.slice(0,-2);
 					actualName = enharmonic(actualName);
 					chordName += actualName + " ";
 				}
 				
-				keysData.text = "Chord: " + chordName;
+				chordData.text = "Chord: " + chordName;
 			}
 		}
 		
@@ -168,7 +169,7 @@ package january
 		
 		public static function hide():void
 		{
-			noteData.exists = modeData.exists = keysData.exists = false;
+			noteData.exists = modeData.exists = chordData.exists = false;
 		}
 	}
 }

@@ -2,8 +2,10 @@ package january
 {			
 	import flash.display.*;
 	import flash.events.*;
+	
 	import january.colorlayers.*;
 	import january.music.*;
+	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -64,12 +66,21 @@ package january
 		/** The feedback text for secret features. */
 		public static var secretFeedback: Text;
 		/** An array of strings depicting the various secrets. */
-		private static var secrets: Array = ["Secret #1: H tells you all you need to know.", "Secret #2: M lets you save prematurely.", "Secret #3: comma and dot will help you plot.", "Secret #4: K is for key, okay?", "Secret #5: P is for pedaling.", "Secret #6: Red means no retread.", "Secret #7: Green's a playback machine."];
+		private static var secrets: Array = [
+			"Secret #1: H is for heuristics.",
+			"Secret #2: M is for moving to another medium.",
+			"Secret #3: Comma and dot will help you plot.",
+			"Secret #4: K is the key, or is it the keys?",
+			"Secret #5: P is for pedaling, pedaling is the point.",
+			"Secret #6: White lets you write. In a sense.",
+			"Secret #7: Green is a repeating machine.",
+			"Secret #8: A third style waits for you in the brackets.",
+			"Secret #9: Yellow does as White does, but Green does not remember.",
+			"Secret #10: Turn around and hear things differently.",
+			"Secret #11: R is for thinking backwards."];
 		
 		// TIME-RELATED ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		/** The amount of time between Snowflake spawns. */
-		private static var spawnRate: int = 300;
 		/** Time before first Snowflake spawns. */
 		private static const SPAWNRATE_INIT: int = 6000;
 		/** Time between Snowflake spawns when Score is Zero. */
@@ -78,16 +89,18 @@ package january
 		private static const SPAWNRATE_ATEXITHOUSE: int = 8000;
 		/** Rate at which the time between Snowflake spawns is decremented by. */
 		private static const SPAWNRATE_DECREMENTER: int = 4;
-		/** Number which dictates minimum spawnRate. */
-		private static var spawnRateMinMod: int = 11500;
+		/** The amount of time between Snowflake spawns. */
+		private static var spawnRate: int = 300;
+		/** Number which dictates minimum spawnRate. Higher = slower */
+		private static var spawnRateMinMod: int = 17500;
 		/** The minimum amount of time allowed between Snowflake spawns. Initialized in create(), recalculated on resize. */
 		private static var spawnRateMinimum: int;
 		/** The timer for determining when to spawn snowflakes. */
 		private static var spawnTimer: FlxDelay;
 		
 		public static var flamTimer: FlxDelay;
-		private static var flamRate: int = 25;
 		public static var flamNotes: Array = [];
+		private static var flamRate: int = 25;
 		private static var flamCounter: int = 0;
 		
 		// MISCELLANEOUS /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,6 +122,11 @@ package january
 			FlxG.volume = 1;		
 			FlxG.playMusic(Asset.AMBIENCE, Note.MAX_VOLUME * 6.66); FlxG.music.fadeIn(2);
 			FlxG.sounds.maxSize = 32;
+			
+			// Set Channel 1 Instrument to Guitar
+			MIDI.trackEvents.push(0);
+			MIDI.trackEvents.push(193);
+			MIDI.trackEvents.push(24);
 			
 			//	Build World		
 				sky = new FlxSprite(0, 0, Asset.SKY);
@@ -160,7 +178,7 @@ package january
 			snow = new FlxGroup(); add(snow);
 			
 			// Add HUD
-			HUD.init(); add(HUD.keysData); add(HUD.modeData); add(HUD.noteData);
+			HUD.init(); add(HUD.chordData); add(HUD.modeData); add(HUD.noteData);
 			
 			// Create Backgrounds (keep order in tact for proper blending)				
 			haze   = new Haze();	add(haze);
@@ -168,7 +186,7 @@ package january
 			black  = new Black();	add(black);	
 			
 			// Add Fireflies.
-			fireflies = new FlxGroup();	add(fireflies);		
+			fireflies = new FlxGroup();	add(fireflies);	
 			
 			// Create Game Over Layer
 				gameOverText = new FlxText(0, 0, 320, "");
@@ -182,22 +200,21 @@ package january
 			Camera.init(); add(Camera.anchor); add(Camera.lens);	FlxG.resetCameras(Camera.lens);					
 			
 			// Start Timers
-			spawnRateMinimum = (1/FlxG.width) * 10000;
+			spawnRateMinimum = (1/FlxG.width) * spawnRateMinMod;
 			spawnTimer = new FlxDelay(SPAWNRATE_INIT);
 			
 			flamTimer = new FlxDelay(flamRate);
 			
 			// Set Initial Mode to Ionian or Aeolian.
-			Mode.index = Helper.pickFrom(0, 4); Mode.init();
+			Mode.index = Helper.randInt(0, Mode.DATABASE.length - 1);
+			Mode.init();
 			
 			super.create();
 		}
 		
 		/** Called every frame. */
 		override public function update():void
-		{											
-			FlxG.log(Mode.current);
-			
+		{																	
 			// Timer callback, used to flam out notes in chords, etc. Awesome!
 			flamTimer.callback = function():void
 			{
@@ -238,8 +255,9 @@ package january
 			super.update();	
 			
 			// Wait until player moves to spawn first snowflake.
-			if ((FlxG.keys.RIGHT || FlxG.keys.D) && FlxG.score == SCORE_INIT && spawnTimer.isRunning == false && end == false)
-				spawnTimer.start();
+			if (FlxG.score == SCORE_INIT)
+				if ((FlxG.keys.RIGHT || FlxG.keys.D) && spawnTimer.isRunning == false && end == false)
+					spawnTimer.start();
 			
 			// Loop Sky Background
 			if (sky.x < -716) sky.x = 0;
@@ -251,7 +269,10 @@ package january
 			if (player.x > houseRight.x + 8) enterHouse();
 			
 			// Key input checks for secret features!.
-			HUD.toggle(); Mode.cycle(); Key.toggle(); Pedal.toggle();
+			if (FlxG.score > 0)
+			{
+				HUD.toggle(); Mode.cycle(); Key.toggle(); Pedal.toggle(); Playback.modes(); Playback.reversal();
+			}
 			
 			// Keep MIDI Timer in check, to get appropriate time values for logging.
 			if (Note.lastAbsolute != null)
@@ -314,6 +335,7 @@ package january
 			{				
 				HUD.hide();
 				Playback.numbers.kill();
+				secretFeedback.kill();
 				
 				// Stop camera anchor and move it all the way to the beginning.
 				Camera.anchor.x = FlxG.worldBounds.x;
@@ -421,7 +443,7 @@ package january
 				Camera.lens.deadzone = new FlxRect(0, 0, FlxG.width + 1, FlxG.height);
 				Camera.lens.target = Camera.anchor;
 				
-				spawnRateMinimum = (1/FlxG.width) * 10000;
+				spawnRateMinimum = (1/FlxG.width) * spawnRateMinMod;
 				
 				if (end == true)
 				{

@@ -25,7 +25,7 @@ package january
 		
 		public static function logic():void
 		{	
-			if (FlxG.score > 0)
+			if (FlxG.score > 0 && Game.end == false)
 			{
 				if (Game.player.x <= lens.scroll.x + 25)
 				{					
