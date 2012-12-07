@@ -1,8 +1,12 @@
 package january.music
 {
+	import flash.display.*;
+	import flash.events.MouseEvent;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
+	
 	import january.*;
+	
 	import org.flixel.*;
 	
 	/*
@@ -67,9 +71,10 @@ package january.music
 		private static var instrument: int = 0;
 		
 		/** The MIDI file, stored as bytes. */
-		private static var bytes : ByteArray = new ByteArray();
+		public static var bytes : ByteArray = new ByteArray();
 		/** Used to prompt user for download/dialogue. */
-		private static var file	 : FileReference = new FileReference();
+		public static var file	 : FileReference = new FileReference();
+		public static var fileName: String;
 		
 		/** The timer used to keep track of time intervals. */
 		public static var timer			    : Number = 0;
@@ -91,8 +96,8 @@ package january.music
 		/** Note Ons that haven't been set to Note Off yet. */
 		private static var unresolvedPitches2 : Array = [];
 		
-		public static function generate():void
-		{						
+		public static function generate(event: MouseEvent):void
+		{									
 			// Add Note Off Delay for First Note.
 			trackEvents.push(132);
 			
@@ -127,7 +132,6 @@ package january.music
 			for (var n:int = 0; n < TRACK_FOOTER.length; n++)
 				bytes.writeByte(TRACK_FOOTER[n]);
 			
-			var fileName:String;
 			if (Game.mostLickedType == "Large")
 				fileName = "snow_eating_contest.mid";
 			else if (Game.mostLickedType == "Transpose")
@@ -140,7 +144,7 @@ package january.music
 				fileName = "a_hasty_export.mid";
 			
 			file.save(bytes, fileName);
-			bytes.clear();			
+			bytes.clear();
 		}
 		
 		public static function log(sound:Class, velocity:Number):void

@@ -2,10 +2,9 @@ package january
 {			
 	import flash.display.*;
 	import flash.events.*;
-	
 	import january.colorlayers.*;
+	import january.snowflakes.*;
 	import january.music.*;
-	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -67,17 +66,19 @@ package january
 		public static var secretFeedback: Text;
 		/** An array of strings depicting the various secrets. */
 		private static var secrets: Array = [
-			"Secret #1: H is for heuristics.",
-			"Secret #2: M is for moving to another medium.",
-			"Secret #3: Comma and dot will help you plot.",
-			"Secret #4: K is the key, or is it the keys?",
-			"Secret #5: P is for pedaling, pedaling is the point.",
-			"Secret #6: White lets you write. In a sense.",
-			"Secret #7: Green is a repeating machine.",
-			"Secret #8: A third style waits for you in the brackets.",
-			"Secret #9: Yellow does as White does, but Green does not remember.",
-			"Secret #10: Turn around and hear things differently.",
-			"Secret #11: R is for thinking backwards."];
+			"Secret: H is for heuristics.",
+			"Secret: M is for moving to mediums beyond.",
+			"Secret: COMMA and DOT will help you plot.",
+			"Secret: K is the key, or is it the keys?",
+			"Secret: P is for pedaling, pedaling is the point.",
+			"Secret: White lets you write. In a sense.",
+			"Secret: Green is a repeating machine.",
+			"Secret: The BRACKETS yield three styles.",
+			"Secret: Yellow does as White does, but Green does not remember.",
+			"Secret: Look back. Hear things differently.",
+			"Secret: ENTER and RETURN, turn and turnabout.",
+			"Secret: CONTROL is for control freaks.",
+			"Secret: BACK to square one, SLASH what you've done."];
 		
 		// TIME-RELATED ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
@@ -88,11 +89,11 @@ package january
 		/** Time between Snowflake spawns after Exiting the House. */
 		private static const SPAWNRATE_ATEXITHOUSE: int = 8000;
 		/** Rate at which the time between Snowflake spawns is decremented by. */
-		private static const SPAWNRATE_DECREMENTER: int = 4;
+		private static const SPAWNRATE_DECREMENTER: int = 3;
 		/** The amount of time between Snowflake spawns. */
 		private static var spawnRate: int = 300;
 		/** Number which dictates minimum spawnRate. Higher = slower */
-		private static var spawnRateMinMod: int = 17500;
+		private static var spawnRateMinMod: int = 16000;
 		/** The minimum amount of time allowed between Snowflake spawns. Initialized in create(), recalculated on resize. */
 		private static var spawnRateMinimum: int;
 		/** The timer for determining when to spawn snowflakes. */
@@ -117,10 +118,10 @@ package january
 		/** Initialize game, create and add everything. */
 		override public function create():void
 		{					
-			FlxG.stage.removeEventListener(MouseEvent.CLICK, fullScreen);
+			//FlxG.stage.removeEventListener(MouseEvent.CLICK, fullScreen);
 			FlxG.score = SCORE_INIT;
 			FlxG.volume = 1;		
-			FlxG.playMusic(Asset.AMBIENCE, Note.MAX_VOLUME * 6.66); FlxG.music.fadeIn(2);
+			FlxG.playMusic(Ambience, Note.MAX_VOLUME / 5); FlxG.music.fadeIn(2);
 			FlxG.sounds.maxSize = 32;
 			
 			// Set Channel 1 Instrument to Guitar
@@ -186,7 +187,7 @@ package january
 			black  = new Black();	add(black);	
 			
 			// Add Fireflies.
-			fireflies = new FlxGroup();	add(fireflies);	
+			//fireflies = new FlxGroup();	add(fireflies);	
 			
 			// Create Game Over Layer
 				gameOverText = new FlxText(0, 0, 320, "");
@@ -206,7 +207,7 @@ package january
 			flamTimer = new FlxDelay(flamRate);
 			
 			// Set Initial Mode to Ionian or Aeolian.
-			Mode.index = Helper.randInt(0, Mode.DATABASE.length - 1);
+			Mode.index = Helper.pickFrom(0, 4);
 			Mode.init();
 			
 			super.create();
@@ -271,7 +272,7 @@ package january
 			// Key input checks for secret features!.
 			if (FlxG.score > 0)
 			{
-				HUD.toggle(); Mode.cycle(); Key.toggle(); Pedal.toggle(); Playback.modes(); Playback.reversal();
+				HUD.toggle(); Mode.cycle(); Key.toggle(); Pedal.toggle(); Playback.modes(); Playback.polarity(); Playback.resetRestart(); //Record.off();
 			}
 			
 			// Keep MIDI Timer in check, to get appropriate time values for logging.
@@ -362,39 +363,44 @@ package january
 		/** Called when the game is over. Shows the game over layer. */
 		public function gameOver():void
 		{			
+			FlxG.stage.displayState = StageDisplayState.NORMAL;
+			
 			FlxG.music.fadeOut(0.01);
 			black.alphaUp(0.01);
 			black.fill(0xFF75899C);
 			
 			//score stuff for save name and end title.
-//			var score:int = scores["Large"];
-//			var kind:String = "Large";
-//			for (var item:* in scores)
-//			{
-//				if (scores[item] > score)
-//				{
-//					score = scores[item];
-//					kind = item;
-//				}
-//			}
-//			
-//			if (kind == "Transpose")
-//				gameOverText.text = "You ate your way to " + score + " Key Changes.";
-//			else if (kind == "Harmony")
-//				gameOverText.text = "You thought it wise to add a harmony note " + score + " times.";
-//			else if (kind == "Chord")
-//				gameOverText.text = "You ate " + score + " Chords, which is an odd thing to do.";
-//			else if (kind == "Octave")
-//				gameOverText.text = "You heard you liked Octaves, so you put " + score + " Octaves on your notes.";
-//			else if (kind == "Vamp")
-//				gameOverText.text = "You vamped " + score + " times. For lack of a better word.";
-//			else
-//				gameOverText.text = "You ate a lot of snow. But it doesn't have to end here.";
-//			
-//			mostLickedScore = score;
-//			mostLickedType = kind;
+			var score:int = scores["Large"];
+			var kind:String = "Large";
+			for (var item:* in scores)
+			{
+				if (scores[item] > score)
+				{
+					score = scores[item];
+					kind = item;
+				}
+			}
 			
-			gameOverText.text = Helper.randomPull(secrets);
+			if (kind == "Transpose")
+				gameOverText.text = "You ate your way to " + score + " Key Changes.";
+			else if (kind == "Harmony")
+				gameOverText.text = "You thought it wise to add a harmony note " + score + " times.";
+			else if (kind == "Chord")
+				gameOverText.text = "You ate " + score + " Chords, which is an odd thing to do.";
+			else if (kind == "Octave")
+				gameOverText.text = "You heard you liked Octaves, so you put " + score + " Octaves on your notes.";
+			else if (kind == "Vamp")
+				gameOverText.text = "You vamped " + score + " times. For lack of a better word.";
+			else
+				gameOverText.text = "You ate a lot of snow. But it doesn't have to end here.";
+
+			mostLickedScore = score;
+			mostLickedType = kind;
+			
+			if (Helper.chanceRoll(50))
+				gameOverText.text = Helper.randomPull(secrets);
+			
+			FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
 			
 			FlxG.mouse.show();
 			gameOverText.x = (FlxG.width - gameOverText.realWidth) / 2; gameOverText.y = 30;

@@ -1,13 +1,10 @@
 package january.music
 {	
 	import january.*;
-	
 	import org.flixel.*;
 	
 	public class Playback
 	{
-		/** Used to instantiate Note.lastRecorded, and push to the playbackSequence. */
-		public static var note	   : Class;	
 		/** Current playbackSequence of notes being cycled through */
 		public static var sequence : Array = [];		
 		/** Current position in playbackSequence array */
@@ -17,6 +14,7 @@ package january.music
 		/** Whether or not Playback mode is in reverse. */
 		public static var reverse: Boolean;
 
+		/** Use the keyboard to cycle through musical modes. */
 		public static function modes():void
 		{
 			if (FlxG.keys.justPressed("LBRACKET"))
@@ -32,7 +30,7 @@ package january.music
 					sequence = [];
 					index = 0;
 					reverse = false;
-					Game.secretFeedback.show("Create");
+					Game.secretFeedback.show("Write");
 				}
 			}
 			if (FlxG.keys.justPressed("RBRACKET"))
@@ -50,9 +48,29 @@ package january.music
 			}
 		}
 		
-		public static function reversal():void
+		/** Use the keyboard to reset a sequence currently in writing, or restart a playback sequence. */
+		public static function resetRestart():void
 		{
-			if (FlxG.keys.justPressed("R") && Snowflake.mode == "Playback")
+			if (FlxG.keys.justPressed("BACKSLASH") && Snowflake.mode != "Interject")
+			{
+				if (Snowflake.mode == "Record")
+				{
+					sequence = [];
+					index = 0;
+					Game.secretFeedback.show("Reset");
+				}
+				else
+				{
+					index = 0;	
+					Game.secretFeedback.show("Restart");
+				}	
+			}
+		}
+		
+		/** Use the keyboard to reverse the note order of playback. */
+		public static function polarity():void
+		{
+			if (FlxG.keys.justPressed("ENTER") && Snowflake.mode == "Playback")
 			{			
 				reverse = !reverse;
 				
@@ -62,7 +80,7 @@ package january.music
 					if (index < 0)
 						index = index + sequence.length;
 					
-					// play "1", out of "4". reverse. 0 - 2 = -2. -2 + 5 = [3] plays "4", shows "3"
+					Game.secretFeedback.show("Backwards");
 				}
 				else
 				{
@@ -70,10 +88,8 @@ package january.music
 					if (index > sequence.length - 1)
 						index = index - sequence.length;
 					
-					// i[4] is max, just played "5". index = 6. if index > 4, index = 6 - 5 = 1;
+					Game.secretFeedback.show("Forwards");
 				}
-				
-				Game.secretFeedback.show("Reverse");
 			}
 		}
 	}

@@ -55,7 +55,7 @@ package january
 		
 		private function onYes():void
 		{			
-			Game.fullScreen();
+			//Game.fullScreen();
 			FlxG.mouse.hide();
 			FlxG.fade(0xFF000000, 1, newState);
 		}

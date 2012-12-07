@@ -174,7 +174,12 @@ package january.music
 		{
 			if (modeIndex == -1)
 			{			
-				var newIndex:int = Helper.randInt(0, DATABASE.length - 1);			
+				var newIndex:int = Helper.randInt(0, DATABASE.length - 1);		
+				
+				// Halve Probability of Mixolydian
+				if (newIndex == 3)
+					newIndex = Helper.randInt(0, DATABASE.length - 1);
+				
 				while (newIndex == index)
 					newIndex = Helper.randInt(0, DATABASE.length - 1);	
 				index = newIndex;

@@ -18,7 +18,7 @@ package january.colorlayers
 		{			
 			if (layerOn == false && Snowflake.mode == "Playback") //10
 			{
-				alphaUp(45, 0.85); //120
+				alphaUp(45, 0.5); //45, 0.85
 				layerOn = true;
 			}
 		}

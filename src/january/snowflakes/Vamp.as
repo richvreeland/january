@@ -33,14 +33,6 @@ package january.snowflakes
 			playChord();
 		}
 		
-		protected override function spawn(flakeType: String, spawnX: Number = 0):void
-		{
-			// Spawn only on left half of screen.
-			spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x - (FlxG.width / 2));
-			
-			super.spawn(flakeType, spawnX);
-		}
-		
 		public override function update():void
 		{
 			super.update();

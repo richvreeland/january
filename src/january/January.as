@@ -16,7 +16,7 @@ package january
 		public function January()
 		{			
 			// 2.66 : 1
-			super(INIT_WIDTH, INIT_HEIGHT, INIT_STATE, INIT_ZOOM);
+			super(INIT_WIDTH, INIT_HEIGHT, INIT_STATE, INIT_ZOOM, 30, 30);
 			
 			// Force the debugger
 			//forceDebugger = true;
@@ -30,7 +30,7 @@ package january
             super.create(FlashEvent);
  
 			// Full Screen Listeners
-			FlxG.stage.addEventListener(Event.RESIZE, Game.resize);
+			//FlxG.stage.addEventListener(Event.RESIZE, Game.resize);
         }
 	}
 }

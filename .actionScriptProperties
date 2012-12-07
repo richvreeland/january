@@ -29,6 +29,7 @@
       <libraryPathEntry kind="1" linkType="1" path="${FLEXUNIT_LOCALE_LOCATION}/version4locale/"/>
       <libraryPathEntry kind="3" linkType="1" path="assets/audio/audio.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="assets/audio/_audio.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="assets/audio/ambience.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

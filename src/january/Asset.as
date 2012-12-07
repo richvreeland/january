@@ -16,7 +16,6 @@ package january
 		[Embed(source = "../assets/art/cabin.png")]												public static const HOUSE		 : Class;
 		
 		// SOUNDS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		[Embed(source = "../assets/audio/ambience.swf", symbol = "snow_01.aif")] 				public static const AMBIENCE	 : Class;
 		[Embed(source = "../assets/audio/door_open.mp3")] 						 				public static const DOOR_OPEN	 : Class;
 		[Embed(source = "../assets/audio/door_close.mp3")] 										public static const DOOR_CLOSE	 : Class;
 	}

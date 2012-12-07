@@ -1,10 +1,8 @@
 package january
 {
 	import flash.utils.*;
-	
 	import january.music.*;
 	import january.snowflakes.*;
-	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -59,11 +57,11 @@ package january
 		protected var alphaLifespan: Number = 0;
 		
 		// Snowflake spawning probabilities
-		private static var flakes: Array  = ["Small", "Record", "Octave", "Harmony", "Chord", "Vamp", "Transpose"];
-		private static var weights: Array = [78.5, 10, 0, 0, 0, 0, 0];
+		private static var flakes: Array  = ["Small", "Octave", "Harmony", "Chord", "Vamp", "Transpose"];
+		public static var weights: Array = [88.5, 0, 0, 0, 0, 0];
 		
 		// List of classes for getDefinitionByName() to use
-		Small; Record; Octave; Harmony; Chord; Vamp; Transpose; //Interject;
+		Small; Octave; Harmony; Chord; Vamp; Transpose;
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -80,11 +78,9 @@ package january
 			var flakeID: String;
 			
 			 if (FlxG.score > 1)
-				 flakeID = flakes[Helper.weightedChoice(weights)];
-			else if (FlxG.score == 1)
-				flakeID = "Small";
+				flakeID = flakes[Helper.weightedChoice(weights)];
 			else
-				flakeID = "Record";
+				flakeID = "Small";
 			
 			// use string above to instantiate proper Snowflake Subclass.
 			var subClass: Class = getDefinitionByName( "january.snowflakes." + flakeID ) as Class;			
@@ -166,40 +162,21 @@ package january
 		public function onLick():void
 		{				
 			super.kill();
-								
+			
 			FlxG.score++;
 			
 			if (type != "Small")
 				Game.scores[type]++;
 			
 			// Gradually introduce flakes
-			if (FlxG.score >= Transpose.INTRODUCE_AT)	weights[6] = 0.5;	// Transpose
-			if (FlxG.score >= Vamp.INTRODUCE_AT)		weights[5] = 2;		// Vamp
-			if (FlxG.score >= Chord.INTRODUCE_AT)		weights[4] = 2;		// Chord
-			if (FlxG.score >= Harmony.INTRODUCE_AT)		weights[3] = 3.5;	// Harmony
-			if (FlxG.score >= Octave.INTRODUCE_AT)		weights[2] = 3.5;	// Octave
-//			if (FlxG.score >= Interject.INTRODUCE_AT)
-//			{
-//				// Diametrically oppose Record and Interject flakes, for simplification of game design.
-//				if (mode == "Record")
-//				{
-//					weights[1] = 10;
-//					weights[2] = 0;
-//				}
-//				else if (mode == "Interject")
-//				{
-//					weights[1] = 0;
-//					weights[2] = 10;
-//				}
-//				else
-//				{
-//					weights[1] = 5;
-//					weights[2] = 5;
-//				}
-//			}
+			if (FlxG.score >= Transpose.INTRODUCE_AT)	weights[5] = 0.5;	// Transpose
+			if (FlxG.score >= Vamp.INTRODUCE_AT)		weights[4] = 2;		// Vamp
+			if (FlxG.score >= Chord.INTRODUCE_AT)		weights[3] = 2;		// Chord
+			if (FlxG.score >= Harmony.INTRODUCE_AT)		weights[2] = 3.5;	// Harmony
+			if (FlxG.score >= Octave.INTRODUCE_AT)		weights[1] = 3.5;	// Octave
 			
 			// Increase Flake Probability if Player Keeps Licking that type. only Harmony and Octave Flakes
-			for (var j:int = 2; j <= 3; j++)
+			for (var j:int = 1; j <= 2; j++)
 			{
 				// Increment probability by .05%
 				if (type == flakes[j])
@@ -219,12 +196,15 @@ package january
 		/** Create a firefly when player has licked snowflake. */
 		public function fly():void
 		{
-			if (FlxG.score > 1)
-			{				
-				var lickedFlake: Class = getDefinitionByName( "january.snowflakes." + type ) as Class;	
-				var firefly: Object = Game.fireflies.recycle(lickedFlake) as lickedFlake;
-				firefly.spawnFirefly(type, x, y);
-			}
+			if (mode == "Playback")
+				Playback.numbers.onLick(this);
+			
+//			if (FlxG.score > 1)
+//			{				
+//				var lickedFlake: Class = getDefinitionByName( "january.snowflakes." + type ) as Class;	
+//				var firefly: Object = Game.fireflies.recycle(lickedFlake) as lickedFlake;
+//				firefly.spawnFirefly(type, x, y);
+//			}
 		}
 		
 		/** Spawns fireflies (post-licked snowflakes). */
@@ -240,7 +220,7 @@ package january
 			if (mode == "Playback")
 			{
 				color = PLAYBACK_COLOR;
-				Playback.numbers.onLick(this);
+				//Playback.numbers.onLick(this);
 			}
 			else if (mode == "Interject")
 				color = INTERJECT_COLOR;
@@ -514,19 +494,13 @@ package january
 			var note: Class;
 			var random: int;
 			
-			// NOTE PREVENTIONS
+			// NOTE PREVENTIONS			
 			while (note == null
 				|| note == Note.lastAbsolute
+				|| note == Note.secondToLastRecorded
 				|| (note == Note.lastHarmony && lastLickedType == "Harmony")
 				|| (note == Note.lastOctave && lastLickedType == "Octave")
 				|| (type == "Octave" && (note == i.for1 || note == i.for2 || note == i.for3)) )
-			{
-				random = Helper.randInt(0, options.length - 1);
-				note = i[options[random]] as Class;
-			}
-			
-			// Separate check for preventing trills, at a probability of X : 1, where X is total number of options
-			if (note == Note.secondToLastRecorded)
 			{
 				random = Helper.randInt(0, options.length - 1);
 				note = i[options[random]] as Class;

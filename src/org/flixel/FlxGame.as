@@ -245,7 +245,7 @@ package org.flixel
 				return;
 			if(!FlxG.mobile)
 			{
-				if((_debugger != null) && ((FlashEvent.keyCode == 192) || (FlashEvent.keyCode == 220)))
+				if((_debugger != null) && ((FlashEvent.keyCode == 192)))// || (FlashEvent.keyCode == 220)))
 				{
 					_debugger.visible = !_debugger.visible;
 					_debuggerUp = _debugger.visible;
@@ -448,7 +448,7 @@ package org.flixel
 					_accumulator += elapsedMS;
 					if(_accumulator > _maxAccumulation)
 						_accumulator = _maxAccumulation;
-					while(_accumulator >= _step)		// Changed >= to >, Based on krix's fix from flixel forums
+					while(_accumulator > _step)		// Changed >= to >, Based on krix's fix from flixel forums
 					{
 						step();
 						_accumulator = _accumulator - _step; 

@@ -1,6 +1,9 @@
 package january
 {
-	import january.music.*;	
+	import flash.events.MouseEvent;
+	import flash.display.*;
+	import january.music.*;
+	
 	import org.flixel.*;
 	
 	public class HUD
@@ -42,15 +45,28 @@ package january
 				noteData.exists = modeData.exists = chordData.exists = !chordData.exists;
 			
 			// Press M to Toggle MIDI Save Button.
-			if(FlxG.keys.justPressed("M"))
+			if(FlxG.keys.justPressed("M") && Game.end == false)
 			{
+				FlxG.stage.displayState = StageDisplayState.NORMAL;
+				
 				if (FlxG.mouse.visible)
+				{
 					FlxG.mouse.hide();
+					FlxG.stage.removeEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
+				}
 				else
-					FlxG.mouse.show();
+				{
+					FlxG.mouse.show(); 
+					FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
+				}
 				
 				midiButton.exists = !midiButton.exists;
 			}
+		}
+		
+		private static function exitFullScreen(event: MouseEvent):void
+		{
+			
 		}
 		
 		/**

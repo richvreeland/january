@@ -9,6 +9,8 @@ package january.snowflakes
 	{
 		[Embed(source="../assets/art/flakes/large.png")] private var sprite: Class;
 		
+		private static var switchedOff: Boolean;
+		
 		public function Record()
 		{
 			super();
@@ -54,8 +56,8 @@ package january.snowflakes
 		{
 			if (FlxG.score == 0)
 				spawnX = Camera.lens.scroll.x + FlxG.width/2;
-//			else if (mode == "Playback") // Spawn only on right side of screen.
-//				spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX + (FlxG.width / 2), Camera.anchor.x);
+			else
+				spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x);
 			
 			super.spawn(flakeType, spawnX);
 		}
@@ -68,6 +70,33 @@ package january.snowflakes
 				play("default");
 			else
 				play("firefly");
+		}
+		
+		public static function off():void
+		{
+			if (FlxG.keys.justPressed("ZERO") && !switchedOff)
+			{			
+				weights[1] = 0;
+				weights[0] += 10;
+				
+				var i:int = 0;
+				
+				while (i < Game.snow.members.length)
+				{
+					if (Game.snow.members[i] != null)
+					{
+						var flake: Snowflake = Game.snow.members[i];
+					
+						if (flake.type == "Record")
+							flake.kill();
+					}
+					
+					i++;
+				}
+				
+				switchedOff = true;
+				Game.secretFeedback.show("Advanced Mode");
+			}
 		}
 		
 		/** Called only once. Plays the very first note. */

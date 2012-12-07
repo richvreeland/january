@@ -1,7 +1,11 @@
 package january
 {
-	import org.flixel.*;
+	import flash.display.*;
+	import flash.events.MouseEvent;
+	
 	import january.music.*;
+	
+	import org.flixel.*;
 	
 	public class Button extends FlxButton
 	{
@@ -9,7 +13,7 @@ package january
 		
 		public function Button()
 		{
-			super(0,0,"",MIDI.generate);
+			super(0,0,"");
 			
 			loadGraphic(sprite, true, false, 97, 16);
 			addAnimation("default",[0,1],3);

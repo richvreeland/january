@@ -2,31 +2,34 @@ package january.snowflakes
 {
 	import january.*;
 	import january.music.*;
+	
 	import org.flixel.*;
-
-	public class Small extends Snowflake
+	
+	public class Large extends Snowflake
 	{
-		[Embed(source="../assets/art/flakes/small.png")] private var sprite: Class;
+		[Embed(source="../assets/art/flakes/large.png")] private var sprite: Class;
 		
-		public function Small()
-		{			
+		private static var switchedOff: Boolean;
+		
+		public function Large()
+		{
 			super();
-			
-			loadGraphic(sprite, true, false, 3, 3);
-			offset.y = 1;
+					
+			loadGraphic(sprite, true, false, 4, 4);
 			offset.x = 1;
+			offset.y = 1;
 			
 			windY = 10;
-			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
+			volume = Helper.rand(Note.MAX_VOLUME * 0.5, Note.MAX_VOLUME * 0.75);
 			
 			addAnimation("default",[0],0,false);
 			addAnimation("firefly",[1],0,false);
 			
 			pedalAllowed = true;
 		}
-		
+
 		public override function onLick():void
-		{							
+		{			
 			super.onLick();
 			
 			if (Note.lastRecorded != null)
@@ -39,6 +42,8 @@ package january.snowflakes
 		{
 			if (FlxG.score == 0)
 				spawnX = Camera.lens.scroll.x + FlxG.width/2;
+			else
+				spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x);
 			
 			super.spawn(flakeType, spawnX);
 		}
@@ -74,6 +79,5 @@ package january.snowflakes
 			// PUSH NOTE TO PLAYBACK SEQUENCE
 			manageSequence();
 		}
-
 	}
 }
