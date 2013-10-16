@@ -1,5 +1,7 @@
 package january.music
 {
+	import january.*;
+	
 	public class Intervals
 	{
 		/** An array of the interval names, used as a reference for populating the intervals object. */ 

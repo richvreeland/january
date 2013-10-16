@@ -11,8 +11,6 @@ package january.snowflakes
 	{	
 		[Embed(source="../assets/art/flakes/harmony.png")] private var sprite: Class;
 		
-		/* Score to introduce this flake at. */
-		public static const INTRODUCE_AT: int = 25;
 		/** Default volume level for the harmony tone (not the default note). */
 		public static const VOLUME: Number = Note.MAX_VOLUME * 0.33;
 		
@@ -20,15 +18,12 @@ package january.snowflakes
 		{
 			super();
 			
-			loadGraphic(sprite, true, false, 5, 5);
-			offset.x = 1;
-			offset.y = 1;
+			loadGraphic(sprite, true);
 			
 			windY = 13;
 			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 			
 			addAnimation("default", [0,0,0,0,0,0,0,0,1,0,1], 6, true);
-			addAnimation("firefly", [3,2,3,2,2,2,2,2,2,2,2], 6, true);
 			
 			pedalAllowed = true;
 		}
@@ -86,26 +81,17 @@ package january.snowflakes
 			Game.flamNotes.push(harmony);
 			Game.flamTimer.start();
 			
+			inStaccato(harmony);
+			
 			// LOGS
 			Note.lastHarmony = harmonyTone;
-			MIDI.log(harmonyTone, Harmony.VOLUME);
-		}
-		
-		protected override function spawn(flakeType:String, spawnX:Number=0):void
-		{
-			spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x);
-			
-			super.spawn(flakeType, spawnX);
 		}
 		
 		public override function update():void
 		{
 			super.update();
 			
-			if (licked == false)
-				play("default");
-			else
-				play("firefly");
+			play("default");
 		}
 		
 	}

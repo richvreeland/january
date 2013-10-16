@@ -10,20 +10,15 @@ package january.snowflakes
 	{	
 		[Embed(source="../assets/art/flakes/transpose.png")] private var sprite : Class;
 		
-		/* Score to introduce this flake at. */
-		public static const INTRODUCE_AT: int = 100;
-		
 		public function Transpose()
 		{
 			super();
 			
-			loadGraphic(sprite, true, false, 5, 8);
-			offset.y = 1;
+			loadGraphic(sprite, true, false, 5, 6);
 			
 			windY = 15;
 			
 			addAnimation("default", [0,1,2,3,4,3,2,1], 3, true);
-			addAnimation("licked", [9,8,7,6,5,6,7,8], 3, true);
 			
 			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
 		}
@@ -39,22 +34,11 @@ package january.snowflakes
 			playChord();
 		}
 		
-//		protected override function spawn(flakeType: String, spawnX: Number = 0):void
-//		{
-//			// Spawn only on far right side of screen.
-//			spawnX = Helper.randInt(Camera.lens.scroll.x + FlxG.width, Camera.anchor.x + headwayX);
-//			
-//			super.spawn(flakeType, spawnX);
-//		}
-		
 		public override function update():void
 		{
 			super.update();
 			
-			if (licked == false)
-				play("default");
-			else
-				play("licked");
+			play("default");
 		}
 		
 		private function fadeOutDissonance():void

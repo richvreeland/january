@@ -1,8 +1,9 @@
 package january
 {
-	import january.snowflakes.*;
-	import org.flixel.*;
 	import january.music.*;
+	import january.snowflakes.*;
+	
+	import org.flixel.*;
 	
 		public class Text extends FlxText
 		{
@@ -11,7 +12,7 @@ package january
 	        /** The number of seconds to hold the text before it starts to fade. */
 	        private static var lifespan: Number;
 			/** The gutter size, used to keep text off screen edges. */
-			public static const GUTTER: int = 1;
+			public static const GUTTER: int = 5;
 			    
 	        public function Text():void
 			{
@@ -33,15 +34,11 @@ package january
 			 * 
 			 */			
 			public function onLick(SnowRef: Snowflake):void
-			{											
-				// Prevent numbers from showing up after entering the house.
-				if (Game.end == true)
-					kill();
-				
+			{															
 				var _text: String = "";
 				
 				// Store the number of the current place in the playback sequence when appropriate.
-				if (Snowflake.mode == "Playback" && SnowRef.type != "Vamp")
+				if (Playback.mode == "Repeat" && SnowRef.type != "Vamp")
 				{
 					if (Playback.reverse == false)
 					{
@@ -63,38 +60,10 @@ package january
 				
 				// Show the new text feedback.
 				if (_text != "")
-				{
-					lifespan = 1;        
-					text = _text;
-					alpha = 1;	
-					maxVelocity.y = 0;
-					drag.y = 0;					
-					x = SnowRef.x
-					y = SnowRef.y - 10;
-					
-					if (Game.player.facing == LEFT)
-					{
-						x -= realWidth + 5;
-						
-						// Check Bounds on Left Side
-						if (Game.player.x - realWidth < GUTTER + Camera.lens.scroll.x)
-							x = Camera.lens.scroll.x + GUTTER;	
-					}
-					else // facing == RIGHT
-					{
-						x += 5;
-						
-						// Check Bounds on Right Side
-						if (Game.player.x + realWidth > Camera.anchor.x - GUTTER)
-							x = Camera.anchor.x - GUTTER - realWidth;
-						
-						if (Game.player.x + realWidth > Game.houseRight.x)
-							x = Game.houseRight.x - GUTTER - realWidth;
-					}
-				}				
+					show(_text, 5);			
 			}
 			
-			public function show(newText: String):void
+			public function show(newText: String, offset: int = 10):void
 			{
 				lifespan = 1;        
 				text = newText;
@@ -106,22 +75,19 @@ package january
 				
 				if (Game.player.facing == LEFT)
 				{
-					x -= realWidth + 5;
+					x -= realWidth + offset;
 					
 					// Check Bounds on Left Side
-					if (Game.player.x - realWidth < GUTTER + Camera.lens.scroll.x)
-						x = Camera.lens.scroll.x + GUTTER;	
+					if (Game.player.x - realWidth < GUTTER)
+						x = GUTTER;	
 				}
 				else // facing == RIGHT
 				{
-					x += 5;
+					x += offset;
 					
 					// Check Bounds on Right Side
-					if (Game.player.x + realWidth > Camera.anchor.x - GUTTER)
-						x = Camera.anchor.x - GUTTER - realWidth;
-					
-					if (Game.player.x + realWidth > Game.houseRight.x)
-						x = Game.houseRight.x - GUTTER - realWidth;
+					if (Game.player.x + realWidth > FlxG.width - GUTTER)
+						x = FlxG.width - GUTTER - realWidth;
 				}
 			}
 		

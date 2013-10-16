@@ -3,13 +3,13 @@ package january
 	import org.flixel.*;
 	import flash.events.*;
 	
-	[SWF(width="960", height="360", backgroundColor="#000000")]
+	[SWF(width="720", height="330", backgroundColor="#75899C")]
 	[Frame(factoryClass = "january.Preloader")]
 	
 	public class January extends FlxGame
 	{
-		public static const INIT_WIDTH:		uint = 320;
-		public static const INIT_HEIGHT:	uint = 120;
+		public static const INIT_WIDTH:		uint = 240;
+		public static const INIT_HEIGHT:	uint = 110;
 		public static const INIT_STATE:		Class = Menu;
 		public static const INIT_ZOOM:		Number = 3;	
 		

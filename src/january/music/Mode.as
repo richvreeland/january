@@ -7,11 +7,11 @@ package january.music
 	public class Mode
 	{
 		// Modes. Ionian in Major is 3 Octaves, Aeolian in Minor. The rest are 2 octaves.
-		public static const	IONIAN		: Object = {name: "ionian", 	majorPos: 1, minorPos: 3};
-		public static const	DORIAN		: Object = {name: "dorian", 	majorPos: 2, minorPos: 4};
-		public static const	LYDIAN		: Object = {name: "lydian", 	majorPos: 4, minorPos: 6};
-		public static const	MIXOLYDIAN	: Object = {name: "mixolydian", majorPos: 5, minorPos: 7};
-		public static const	AEOLIAN		: Object = {name: "aeolian", 	majorPos: 6, minorPos: 1};
+		public static const	IONIAN		: Object = {name: "Ionian", 	majorPos: 1, minorPos: 3};
+		public static const	DORIAN		: Object = {name: "Dorian", 	majorPos: 2, minorPos: 4};
+		public static const	LYDIAN		: Object = {name: "Lydian", 	majorPos: 4, minorPos: 6};
+		public static const	MIXOLYDIAN	: Object = {name: "Mixolydian", majorPos: 5, minorPos: 7};
+		public static const	AEOLIAN		: Object = {name: "Aeolian", 	majorPos: 6, minorPos: 1};
 		
 		IONIAN.logic =	[
 			/* 00 one1 */	["two1", "thr1", "fiv1", "two2", "thr2"],
@@ -39,11 +39,11 @@ package january.music
 			/* 22 else */	["one2", "one3"] ];
 		
 		DORIAN.logic =	[
-			/* 00 one1 */	["two1", "thr1", "for1", "fiv1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
+			/* 00 one1 */	["thr1", "fiv1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
 			/* 01 two1 */	["fiv1", "six1", "sev1"],
 			/* 02 thr1 */	["one1", "for1", "fiv1", "six1", "sev1", "one2", "thr2", "two2", "fiv2"],
 			/* 03 for1 */	["fiv1", "six1", "sev1", "one2", "thr2"],
-			/* 04 fiv1 */	["two1", "thr1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2", "sev2"],
+			/* 04 fiv1 */	["thr1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2", "sev2"],
 			/* 05 six1 */	["one1", "for1", "fiv1", "sev1", "one2", "for2", "fiv2"],
 			/* 06 sev1 */	["thr1", "fiv1", "six1", "one2", "two2", "thr2", "fiv2", "sev2"],
 			/* 07 one2 */	["one1", "thr1", "for1", "fiv1", "sev1", "two2", "thr2", "fiv2", "sev2", "one3", "two3", "thr3", "fiv3"],
@@ -114,27 +114,27 @@ package january.music
 			/* 22 else */	["one2", "one3"] ];
 		
 		AEOLIAN.logic = [
-			/* 00 one1 */	["two1", "thr1", "for1", "fiv1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
+			/* 00 one1 */	["thr1", "fiv1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
 			/* 01 two1 */	["fiv1", "sev1"],
-			/* 02 thr1 */	["one1", "for1", "fiv1", "six1", "sev1", "one2", "thr2", "two2", "fiv2"],
+			/* 02 thr1 */	["one1", "for1", "fiv1", "six1", "sev1", "one2", "fiv2"],
 			/* 03 for1 */	["fiv1", "six1", "sev1", "one2", "thr2"],
-			/* 04 fiv1 */	["two1", "thr1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
-			/* 05 six1 */	["one1", "for1", "fiv1", "sev1", "one2", "thr2", "for2", "fiv2"],
-			/* 06 sev1 */	["thr1", "fiv1", "six1", "one2", "two2", "thr2", "fiv2", "sev2"],
+			/* 04 fiv1 */	["thr1", "six1", "sev1", "one2", "two2", "thr2", "for2", "fiv2"],
+			/* 05 six1 */	["one1", "fiv1", "sev1", "one2", "thr2", "fiv2"],
+			/* 06 sev1 */	["fiv1", "six1", "one2", "two2", "thr2"],
 			/* 07 one2 */	["one1", "thr1", "for1", "fiv1", "six1", "sev1", "two2", "thr2", "for2", "fiv2", "six2", "sev2", "one3", "two3", "thr3", "for3", "fiv3"],
 			/* 08 two2 */	["fiv1", "sev1", "one2", "thr2", "fiv2", "sev2", "two3"],
-			/* 09 thr2 */	["thr1", "fiv1", "six1", "sev1", "one2", "two2", "for2", "fiv2", "six2", "sev2", "one3", "thr3"],
+			/* 09 thr2 */	["fiv1", "six1", "sev1", "one2", "fiv2", "six2", "sev2", "one3"],
 			/* 10 for2 */	["thr2", "fiv2", "six2", "sev2", "two3", "six1"],
-			/* 11 fiv2 */	["thr1", "fiv1", "six1", "sev1", "one2", "two2", "thr2", "for2", "six2", "sev2", "one3", "two3", "thr3"],
-			/* 12 six2 */	["for1", "six1", "for2", "fiv2", "sev2", "one3", "thr3", "for3", "six3"],
-			/* 13 sev2 */	["sev1", "thr2", "fiv2", "six2", "one3", "two3", "thr3", "fiv3", "sev3"],
+			/* 11 fiv2 */	["thr1", "fiv1", "six1", "sev1", "one2", "two2", "thr2", "for2", "six2", "sev2", "one3", "two3"],
+			/* 12 six2 */	["for1", "fiv2", "sev2", "one3", "thr3"],
+			/* 13 sev2 */	["fiv2", "six2", "one3", "two3", "thr3"],
 			/* 14 one3 */	["one1", "for1", "fiv1", "six1", "one2", "thr2", "fiv2", "six2", "sev2", "two3", "thr3", "for3", "fiv3", "six3", "one4"],
 			/* 15 two3 */	["two2", "fiv2", "sev2", "one3", "thr3", "fiv3", "sev3"],
-			/* 16 thr3 */	["thr2", "fiv2", "six2", "sev2", "one3", "two3", "for3", "fiv3", "six3", "sev3", "one4"],
+			/* 16 thr3 */	["fiv2", "six2", "sev2", "one3", "two3", "for3", "fiv3", "six3", "sev3", "one4"],
 			/* 17 for3 */	["six2", "thr3", "fiv3", "six3", "sev3"],	
 			/* 18 fiv3 */	["thr2", "fiv2", "six2", "sev2", "one3", "two3", "thr3", "for3", "six3", "sev3", "one4"],
-			/* 19 six3 */	["for2", "six2", "for3", "fiv3", "sev3", "one4"],
-			/* 20 sev3 */	["sev2", "thr3", "fiv3", "six3", "one4"],
+			/* 19 six3 */	["for2", "for3", "fiv3", "sev3", "one4"],
+			/* 20 sev3 */	["sev2", "fiv3", "six3", "one4"],
 			/* 21 one4 */	["six2", "one3", "thr3", "for3", "fiv3", "six3", "sev3"],
 			/* 22 else */	["one1", "one2", "one3"] ];
 		
@@ -160,7 +160,7 @@ package january.music
 							["one1", "fiv1", "fiv2"], ["one1", "thr2", "sev2"], ["thr1", "one2", "fiv2"], ["thr1", "fiv1", "one2"],
 							["fiv1", "one2", "thr2"], ["one1", "fiv1", "thr2", "sev2"] ];
 		
-		
+				
 		/** Array of all the modes. */
 		public static const	DATABASE: Array /* of Object */ = [IONIAN, DORIAN, LYDIAN, MIXOLYDIAN, AEOLIAN];
 		/** Number used with mode array to select and identify the current mode. */
@@ -190,27 +190,26 @@ package january.music
 			init();
 		}
 		
-		public static function cycle():void
+		public static function cycle(direction: String = "Left"):void
 		{
-				if (FlxG.keys.justPressed("COMMA"))
-				{
-					index--;
-					if (index < 0)
-						index = DATABASE.length - 1;
-					
-					init();
-					Game.secretFeedback.show(HUD.modeName);
-				}
+			if (direction == "Left")
+			{
+				index--;
+				if (index < 0)
+					index = DATABASE.length - 1;
 				
-				if (FlxG.keys.justPressed("PERIOD"))
-				{
-					index++;
-					if (index > DATABASE.length - 1)
-						index = 0;
-					
-					init();
-					Game.secretFeedback.show(HUD.modeName);
-				}
+				init();
+				Game.feedback.show(HUD.modeName);
+			}			
+			if (direction == "Right")
+			{
+				index++;
+				if (index > DATABASE.length - 1)
+					index = 0;
+				
+				init();
+				Game.feedback.show(HUD.modeName);
+			}
 		}
 		
 		public static function init():void

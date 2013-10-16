@@ -10,15 +10,12 @@ package january.music
 		
 		public static function toggle():void
 		{
-			if (FlxG.keys.justPressed("P"))
-			{
-				mode = !mode;
+			mode = !mode;
 				
-				if (mode == true)
-					Game.secretFeedback.show("Pedal Point: On");
-				else
-					Game.secretFeedback.show("Pedal Point: Off");
-			}
+			if (mode == true)
+				Game.feedback.show("Pedal Point: On");
+			else
+				Game.feedback.show("Pedal Point: Off");
 		}
 	}
 }

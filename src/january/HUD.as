@@ -1,21 +1,24 @@
 package january
 {
-	import flash.events.MouseEvent;
 	import flash.display.*;
+	import flash.events.MouseEvent;
+	import flash.utils.*;
 	import january.music.*;
-	
 	import org.flixel.*;
 	
 	public class HUD
 	{
 		/** The text sprite that holds note name, volume, pan, etc. */
-		public static var noteData: FlxText;
+		public static var row1: FlxText;
 		/** The text sprite that holds mode type, chord tones, etc. */
-		public static var modeData: FlxText;
-		/** Current mode in fancy form, with key and proper capitalization. */
-		public static var modeName: String;
+		public static var row2: FlxText;
 		/** The text sprite that holds chord information, etc. */
-		public static var chordData: FlxText;
+		public static var row3: FlxText;
+		/** Current mode in fancy form, with key and proper capitalization. */
+		public static var modeName: String = "";
+		/** Current mode in fancy form, with key and proper capitalization. */
+		public static var noteText: String = "";
+
 		/** The "Save as MIDI" button. */
 		public static var midiButton: Button;
 		/** The font used for HUD objects. */
@@ -26,47 +29,39 @@ package january
 		/** Sets up HUD! does everything but add it to the state. */
 		public static function init():void
 		{				
-			noteData = new FlxText(9, -1, 256, "Note: ");
-			modeData = new FlxText(8, 9, 256, "Mode: ");
-			chordData = new FlxText(4, 19, 256, "Chord: ");
+			row1 = new FlxText(4, -1, 256, "");
+			row2 = new FlxText(4, 9, 256, "");
+			row3 = new FlxText(4, 19, 256, "");
 			midiButton = new Button();
 			midiButton.x = FlxG.width - midiButton.width - 3;
 			midiButton.y = 3;
-			noteData.scrollFactor.x = modeData.scrollFactor.x = chordData.scrollFactor.x = 0;
-			noteData.font = modeData.font = chordData.font = FONT;
-			noteData.exists = modeData.exists = chordData.exists = false;			
+			row1.scrollFactor.x = row2.scrollFactor.x = row3.scrollFactor.x = 0;
+			row1.font = row2.font = row3.font = FONT;
+			row1.exists = row2.exists = row3.exists = false;			
 		}
 		
 		/** Turns HUD on or off. */ 
 		public static function toggle():void
 		{
-			// Press H to Toggle HUD.
-			if(FlxG.keys.justPressed("H") && Game.end == false)		
-				noteData.exists = modeData.exists = chordData.exists = !chordData.exists;
-			
-			// Press M to Toggle MIDI Save Button.
-			if(FlxG.keys.justPressed("M") && Game.end == false)
-			{
-				FlxG.stage.displayState = StageDisplayState.NORMAL;
-				
-				if (FlxG.mouse.visible)
-				{
-					FlxG.mouse.hide();
-					FlxG.stage.removeEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
-				}
-				else
-				{
-					FlxG.mouse.show(); 
-					FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
-				}
-				
-				midiButton.exists = !midiButton.exists;
-			}
+			row1.exists = row2.exists = row3.exists = !row3.exists;
 		}
 		
-		private static function exitFullScreen(event: MouseEvent):void
+		public static function midi():void
 		{
+			FlxG.stage.displayState = StageDisplayState.NORMAL;
 			
+			if (FlxG.mouse.visible)
+			{
+				FlxG.mouse.hide();
+				FlxG.stage.removeEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
+			}
+			else
+			{
+				FlxG.mouse.show(); 
+				FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, MIDI.generate);
+			}
+			
+			midiButton.exists = !midiButton.exists;
 		}
 		
 		/**
@@ -76,15 +71,12 @@ package january
 		 * @param pan		Pan position of note to be logged.
 		 */		
 		public static function logNote(volume:Number, pan:Number):void
-		{		
+		{					
+			row1.text = "";
+			
 			// Log note name, volume and pan to HUD
-			var loggedNote: String = String(Note.lastAbsolute);
-				loggedNote = loggedNote.slice(7);
-				loggedNote = loggedNote.slice(0,-2);
-				loggedNote = enharmonic(loggedNote);
-			
-			var loggedVolume: String = int( (volume*100)*(1/Note.MAX_VOLUME) ).toString() + "%";
-			
+			var loggedNote: String = enharmonic(getQualifiedClassName(Note.lastAbsolute));	
+			var loggedVolume: String = int( (volume*100)*(1/Note.MAX_VOLUME) ).toString() + "%";		
 			var loggedPan: String = int(pan*100).toString();
 			
 			if (loggedPan.match("-") != null)
@@ -95,7 +87,9 @@ package january
 			else if (loggedPan != "0")
 				loggedPan = loggedPan + "% R";
 			
-			noteData.text = "Note: " + loggedNote + ", Volume: " + loggedVolume + ", Pan: " + loggedPan;
+			noteText = loggedNote + ", in ";
+			row1.text = noteText + modeName + ".";
+			row2.text = "Vol: " + loggedVolume + ", Pan: " + loggedPan;
 		}
 		
 		/**
@@ -106,39 +100,21 @@ package january
 		 */		
 		public static function logMode():void
 		{
-			var keyLetter: String;
-
-			if (Key.current == "C Major")
-			{
-				if (Mode.current == Mode.IONIAN)
-					keyLetter = "C";
-				else if (Mode.current == Mode.DORIAN)
-					keyLetter = "D";
-				else if (Mode.current == Mode.LYDIAN)
-					keyLetter = "F";
-				else if (Mode.current == Mode.MIXOLYDIAN)
-					keyLetter = "G";
-				else if (Mode.current == Mode.AEOLIAN)
-					keyLetter = "A";
-			}
-			else if (Key.current == "C Minor")
-			{
-				if (Mode.current == Mode.IONIAN)
-					keyLetter = "Eb";
-				else if (Mode.current == Mode.DORIAN)
-					keyLetter = "F";
-				else if (Mode.current == Mode.LYDIAN)
-					keyLetter = "Ab";
-				else if (Mode.current == Mode.MIXOLYDIAN)
-					keyLetter = "Bb";
-				else if (Mode.current == Mode.AEOLIAN)
-					keyLetter = "C";
-			}
+			var keyLetter: String = enharmonic(getQualifiedClassName(Intervals.loadout.one1));
 			
-			var firstLetter:String = Mode.current.name.substr(0, 1);
-			var restOfString:String = Mode.current.name.substr(1, Mode.current.name.length);
-			modeName = keyLetter + " " + firstLetter.toUpperCase() + restOfString.toLowerCase();
-			modeData.text = "Mode: " + modeName;
+			if (Scale.isPentatonic)
+			{
+				if (Mode.current == Mode.AEOLIAN || Mode.current == Mode.DORIAN)
+					modeName = "Minor";
+				else
+					modeName = "Major";
+						
+				modeName = keyLetter + " " + modeName + " Pentatonic";
+			}
+			else
+				modeName = keyLetter + " " + Mode.current.name;
+						
+			row1.text = noteText + modeName + ".";
 		}
 		
 		/** Logs Key Data to HUD. */		
@@ -151,19 +127,18 @@ package january
 				var chordName: String = "";
 				for (var i:int = 0; i <= chordTones.length - 1; i++)
 				{
-					var actualName: String = String(chordTones[i]);
-					actualName = actualName.slice(7);
-					actualName = actualName.slice(0,-2);
-					actualName = enharmonic(actualName);
+					var actualName: String = enharmonic(getQualifiedClassName(chordTones[i]));
 					chordName += actualName + " ";
 				}
 				
-				chordData.text = "Chord: " + chordName;
+				row3.text = "Last Chord: " + chordName;
 			}
 		}
 		
 		private static function enharmonic(text:String):String
 		{
+			text = text.slice(0,-1);
+			
 			if (text.search(findSharp) == 1)
 			{
 				text = text.replace(findSharp, "");
@@ -183,9 +158,9 @@ package january
 			return text;
 		}
 		
-		public static function hide():void
+		private static function hide():void
 		{
-			noteData.exists = modeData.exists = chordData.exists = false;
+			row1.exists = row2.exists = row3.exists = false;
 		}
 	}
 }

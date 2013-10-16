@@ -2,75 +2,84 @@ package january.music
 {	
 	import january.*;
 	import org.flixel.*;
+	import org.flixel.plugin.photonstorm.*;
 	
 	public class Playback
 	{
+		/** The current gameplay mode. */
+		public static var mode: String = "Write";
 		/** Current playbackSequence of notes being cycled through */
 		public static var sequence : Array = [];		
 		/** Current position in playbackSequence array */
-		public static var index	   : int = 0;		
-		/** The text sprite used to display number feedback. */
-		public static var numbers: Text;
+		public static var index	   : int = 0;
 		/** Whether or not Playback mode is in reverse. */
 		public static var reverse: Boolean;
+		/** The state of staccato mode. */
+		public static var noteLength: String = "Full";
 
-		/** Use the keyboard to cycle through musical modes. */
-		public static function modes():void
+		/** Cycle through the playback modes. */
+		public static function cycle(direction: String = "Left"):void
 		{
-			if (FlxG.keys.justPressed("LBRACKET"))
+			if (direction == "Left")
 			{
-				if (Snowflake.mode == "Interject")
-				{
-					Snowflake.mode = "Playback";
-					Game.secretFeedback.show("Repeat");
-				}
+				if (mode == "Detour")
+					repeat();
 				else
-				{
-					Snowflake.mode = "Record";
-					sequence = [];
-					index = 0;
-					reverse = false;
-					Game.secretFeedback.show("Write");
-				}
+					write();
 			}
-			if (FlxG.keys.justPressed("RBRACKET"))
+			if (direction == "Right")
 			{
-				if (Snowflake.mode == "Record")
-				{
-					Snowflake.mode = "Playback";
-					Game.secretFeedback.show("Repeat");
-				}
+				if (mode == "Write")
+					repeat();
 				else
-				{
-					Snowflake.mode = "Interject";
-					Game.secretFeedback.show("Detour");
-				}
+					detour();
 			}
 		}
 		
-		/** Use the keyboard to reset a sequence currently in writing, or restart a playback sequence. */
+		public static function write():void
+		{
+			mode = "Write";
+			sequence = [];
+			index = 0;
+			reverse = false;
+			Game.feedback.show(mode);
+		}
+		
+		public static function repeat():void
+		{
+			mode = "Repeat";
+			Game.feedback.show(mode);
+		}
+		
+		public static function detour():void
+		{
+			mode = "Detour";
+			Game.feedback.show(mode);
+		}
+		
+		/** Reset a sequence currently in writing, or restart a repeat sequence. */
 		public static function resetRestart():void
 		{
-			if (FlxG.keys.justPressed("BACKSLASH") && Snowflake.mode != "Interject")
+			if (mode != "Detour")
 			{
-				if (Snowflake.mode == "Record")
+				if (mode == "Write")
 				{
 					sequence = [];
 					index = 0;
-					Game.secretFeedback.show("Reset");
+					Game.feedback.show("Reset");
 				}
 				else
 				{
 					index = 0;	
-					Game.secretFeedback.show("Restart");
+					Game.feedback.show("Restart");
 				}	
 			}
 		}
 		
-		/** Use the keyboard to reverse the note order of playback. */
+		/** Reverse the note order of repeat sequence. */
 		public static function polarity():void
 		{
-			if (FlxG.keys.justPressed("ENTER") && Snowflake.mode == "Playback")
+			if (mode == "Repeat")
 			{			
 				reverse = !reverse;
 				
@@ -80,7 +89,7 @@ package january.music
 					if (index < 0)
 						index = index + sequence.length;
 					
-					Game.secretFeedback.show("Backwards");
+					Game.feedback.show("Backwards");
 				}
 				else
 				{
@@ -88,9 +97,21 @@ package january.music
 					if (index > sequence.length - 1)
 						index = index - sequence.length;
 					
-					Game.secretFeedback.show("Forwards");
+					Game.feedback.show("Forwards");
 				}
 			}
+		}
+		
+		public static function staccato():void
+		{
+			if (noteLength == "Full")
+				noteLength = "Half";
+			else if (noteLength == "Half")
+				noteLength = "Random";
+			else
+				noteLength = "Full";
+			
+			Game.feedback.show("Note Length: " + noteLength);
 		}
 	}
 }

@@ -9,8 +9,6 @@ package january.snowflakes
 	{	
 		[Embed(source="../assets/art/flakes/octave.png")] private var sprite: Class;
 		
-		/* Score to introduce this flake at. */
-		public static const INTRODUCE_AT: int = 10;
 		/** Default volume level for the octave tone (not the default note). */
 		public static const VOLUME: Number = Note.MAX_VOLUME * 0.33;
 		/** The probability weight for spawning this flake type. */
@@ -20,15 +18,10 @@ package january.snowflakes
 		{
 			super();
 			
-			loadGraphic(sprite, false, false, 5, 5);
-			offset.x = 1;
-			offset.y = 1;
+			loadGraphic(sprite);
 			
 			windY = 14;
 			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
-			
-			addAnimation("default", [0],0,false);
-			addAnimation("firefly", [1],0,false);
 			
 			pedalAllowed = true;
 		}
@@ -69,26 +62,10 @@ package january.snowflakes
 			Game.flamNotes.push(octave);
 			Game.flamTimer.start();
 			
+			inStaccato(octave);
+			
 			// LOGS
 			Note.lastOctave = octaveTone;
-			MIDI.log(octaveTone, Octave.VOLUME);
-		}
-		
-		protected override function spawn(flakeType:String, spawnX:Number=0):void
-		{
-			spawnX = Helper.randInt(Camera.lens.scroll.x + headwayX, Camera.anchor.x);
-			
-			super.spawn(flakeType, spawnX);
-		}
-		
-		public override function update():void
-		{
-			super.update();
-			
-			if (licked == false)
-				play("default");
-			else
-				play("firefly");
 		}
 	}
 }

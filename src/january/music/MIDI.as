@@ -98,6 +98,20 @@ package january.music
 		
 		public static function generate(event: MouseEvent):void
 		{									
+			var score:int = 0;
+			var kind:String = "";
+			
+			for (var item:* in Game.scores)
+			{
+				if (Game.scores[item] > score)
+				{
+					score = Game.scores[item];
+					kind = item;
+				}
+			}
+			Game.mostLickedScore = score;
+			Game.mostLickedType = kind;
+			
 			// Add Note Off Delay for First Note.
 			trackEvents.push(132);
 			
@@ -132,16 +146,14 @@ package january.music
 			for (var n:int = 0; n < TRACK_FOOTER.length; n++)
 				bytes.writeByte(TRACK_FOOTER[n]);
 			
-			if (Game.mostLickedType == "Large")
-				fileName = "snow_eating_contest.mid";
-			else if (Game.mostLickedType == "Transpose")
+			if (Game.mostLickedType == "Transpose")
 				fileName = "key_change_conniption_fit.mid";
 			else if (Game.mostLickedType == "Harmony")
 				fileName = "harmonious_harmoniousness.mid";
 			else if (Game.mostLickedType != "")
 				fileName = Game.mostLickedScore + "_" + Game.mostLickedType + "s.mid";
 			else
-				fileName = "a_hasty_export.mid";
+				fileName = "snow_eating_contest.mid";
 			
 			file.save(bytes, fileName);
 			bytes.clear();
@@ -159,7 +171,7 @@ package january.music
 				
 				time = int(timer * 100);						
 				timeBytes = decimalToTimeStamp(time);			
-				velocity = (1 / Note.MAX_VOLUME) * velocity * 127;
+				velocity = (0.75 / Note.MAX_VOLUME) * velocity * 127;
 				
 				for (var j:int = 0; j < timeBytes.length; j++)
 					trackEvents.push(timeBytes[j]);		//	EVENT TIME (SINCE LAST)

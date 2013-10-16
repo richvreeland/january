@@ -7,15 +7,11 @@ package january
 		[Embed(source="../assets/art/player1.png")] private var sprite: Class;
 		
 		/** Initial Player X Position. */
-		public static const X_INIT: int = Camera.X_INIT + 25;
+		public static const X_INIT: int = 20;
 		/** Size of the player's boundary on the left side of the screen, in pixels. */
 		private var boundsLeft: int = 0;
-		/** Scrolling X position of the left side of the screen, in pixels. */
-		private var scrollLeft: int = 0;
-		/** Scrolling X position of the right side of the screen, in pixels. */
-		private var scrollRight: int = 0;
 		/** Whether the player has stopped moving. */
-		private var stopped: Boolean = true;
+		private var stopped: Boolean = false;
 		/** Whether the player's tongue is up. */
 		public var tongueUp: Boolean = false;
 		
@@ -26,10 +22,10 @@ package january
 			super(x, y);
 			loadGraphic(sprite, false, true, 16, 33);
 			
-			width    = 8;
-			height   = 2;
-			offset.x = 5;
-			offset.y = 9;
+			width    = 10;
+			height   = 3;
+			offset.x = 4;
+			offset.y = 7;
 			
 			// Set player's x position bounds
 			boundsLeft = 2;
@@ -41,13 +37,6 @@ package january
 			addAnimation("tongueDown", [4,3,2,0], 18, false);
 			addAnimation("walk", [33,35,37,7,9,11,13,15,17,19,21,23,25,27,29,31], 12);
 			addAnimation("walkTongue", [66,68,70,40,42,44,46,48,50,52,54,56,58,60,62,64], 12);
-			
-//			addAnimation("idle", [19,16,18,17,15,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 6);			
-//			addAnimation("tongueUpStopped", [2,27,26,25,28], 6, false);
-//			addAnimation("tongueUp", [1,28], 12, false);
-//			addAnimation("tongueDown", [1,0], 12, false);
-//			addAnimation("walk", [6, 7, 8, 9, 10, 3, 4, 5], 6);
-//			addAnimation("walkTongue", [12, 13, 20, 21, 22, 23, 24, 11], 6);
 		}
 		
 		override public function update():void
@@ -59,30 +48,26 @@ package january
 			acceleration.x = 0;
 			
 			if ( (frame >= 11 && frame <= 14) || (frame >= 27 && frame <= 31) || (frame >= 44 && frame <= 47) || (frame >= 60 && frame <= 64) )
-				maxVelocity.x = 15;
+				maxVelocity.x = 20;
 			else
-				maxVelocity.x = 35;
+				maxVelocity.x = 40;
 			
 			if (FlxG.keys.CONTROL)
-				maxVelocity.x = 68;
+				maxVelocity.x = 80;
 			
-			if (FlxG.keys.LEFT || FlxG.keys.A)
+			if (FlxG.keys.LEFT || FlxG.keys.A || (Game.onAutoPilot && Game.autoPilotMovement == "Left"))
 			{	
 				facing = LEFT;
 				Snowflake.timbre = "Secondary";
 				velocity.x = -maxVelocity.x;
-//				drag.x = 50000;
-//				acceleration.x -= drag.x;
 			}
-			else if (FlxG.keys.RIGHT || FlxG.keys.D)
+			else if (FlxG.keys.RIGHT || FlxG.keys.D || (Game.onAutoPilot && Game.autoPilotMovement == "Right"))
 			{
 				facing = RIGHT;
 				Snowflake.timbre = "Primary";
 				velocity.x = maxVelocity.x;
-//				drag.x = 50000;
-//				acceleration.x += drag.x;
 			}
-			else if (FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D"))
+			else if (FlxG.keys.justReleased("LEFT") || FlxG.keys.justReleased("RIGHT") || FlxG.keys.justReleased("A") || FlxG.keys.justReleased("D") || (Game.onAutoPilot && Game.autoPilotMovement == "Still"))
 			{
 				drag.x = 100;
 				stopped = true;
@@ -126,24 +111,18 @@ package january
 				}
 				
 				stopped = false;
-			}			
+			}
 			
 			super.update();
 			
 			////////////////
 			// COLLISIONS //
 			////////////////
-			
-			// Update scrolling boundaries.
-			scrollLeft	= Camera.lens.scroll.x + boundsLeft;
-			scrollRight = Camera.anchor.x - width;
 		
-			if (x < scrollLeft)
-				x = scrollLeft;
-			else if (x > scrollRight && Game.end == false)
-				x = scrollRight;
-			else if (x <= FlxG.worldBounds.x + 50)
-				x = FlxG.worldBounds.x + 50;		
+			if (x < (-1*width))
+				x = FlxG.width;
+			else if (x > (FlxG.width + width))
+				x = -1*(width);	
 		}
 		
 	}

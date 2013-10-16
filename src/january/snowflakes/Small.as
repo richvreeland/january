@@ -5,22 +5,15 @@ package january.snowflakes
 	import org.flixel.*;
 
 	public class Small extends Snowflake
-	{
-		[Embed(source="../assets/art/flakes/small.png")] private var sprite: Class;
-		
+	{	
 		public function Small()
 		{			
 			super();
 			
-			loadGraphic(sprite, true, false, 3, 3);
-			offset.y = 1;
-			offset.x = 1;
+			makeGraphic(1, 1);
 			
 			windY = 10;
 			volume = Helper.rand(Note.MAX_VOLUME * 0.33, Note.MAX_VOLUME * 0.83);
-			
-			addAnimation("default",[0],0,false);
-			addAnimation("firefly",[1],0,false);
 			
 			pedalAllowed = true;
 		}
@@ -29,51 +22,40 @@ package january.snowflakes
 		{							
 			super.onLick();
 			
-			if (Note.lastRecorded != null)
-				playNote();
-			else
-				playInitial();
+			if (Game.onAutoPilot)
+			{
+				if (Helper.chanceRoll(5))
+				{
+					if (Playback.mode == "Repeat")
+					{
+						if (Helper.chanceRoll(50))
+							Playback.write();
+						else
+							Playback.detour();
+					}
+					else if (FlxG.score > 0)
+						Playback.repeat();
+				}
+			}
+			
+			if (Game.inImprovMode || Game.onAutoPilot)
+			{
+				if (Helper.chanceRoll(4)) Scale.toPentatonic();
+				if (Helper.chanceRoll(4)) Playback.staccato();
+				
+				if (Pedal.mode == false && Helper.chanceRoll(2))
+					Pedal.toggle();
+				else if (Pedal.mode  && Helper.chanceRoll(5))
+					Pedal.toggle();
+			}
+			
+			if (Game.inImprovMode)
+			{
+				if (Helper.chanceRoll(1))		Mode.change();
+				if (Helper.chanceRoll(0.25)) {	Mode.change(); Key.change(); }
+			}
+			
+			playNote();
 		}
-		
-		protected override function spawn(flakeType: String, spawnX: Number = 0):void
-		{
-			if (FlxG.score == 0)
-				spawnX = Camera.lens.scroll.x + FlxG.width/2;
-			
-			super.spawn(flakeType, spawnX);
-		}
-		
-		public override function update():void
-		{
-			super.update();
-			
-			if (licked == false)
-				play("default");
-			else
-				play("firefly");
-		}
-		
-		/** Called only once. Plays the very first note. */
-		private function playInitial():void
-		{
-			//FlxG.log("playInitial()");
-			
-			// PREPARE AND PLAY
-			pan = 0;
-			Intervals.populate();
-			i = Intervals.loadout;
-			Note.initial = i[Intervals.DATABASE[Helper.randInt(0, Intervals.DATABASE.length / 2)]];
-			FlxG.play(Note.initial, volume);
-			
-			// LOGS
-			Note.lastRecorded = Note.initial;
-			Note.lastAbsolute = Note.lastRecorded;
-			MIDI.log(Note.lastAbsolute, volume);
-			HUD.logNote(volume, pan); HUD.logMode();
-			
-			// PUSH NOTE TO PLAYBACK SEQUENCE
-			manageSequence();
-		}
-
 	}
 }

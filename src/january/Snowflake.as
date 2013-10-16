@@ -1,8 +1,10 @@
 package january
 {
 	import flash.utils.*;
+	
 	import january.music.*;
 	import january.snowflakes.*;
+	
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	
@@ -18,8 +20,6 @@ package january
 		protected var pan: Number = Helper.rand(-1, 1);
 		/** Whether the Snowflake in question allows for a pedal tone. */
 		protected var pedalAllowed: Boolean;
-		/** The current gameplay mode. */
-		public static var mode: String = "Record";
 		/** Used to store Intervals.loadout */
 		protected static var i: Object;
 		/** Whether to use primary or secondary timbre set. */
@@ -34,13 +34,6 @@ package january
 		// NON-MUSIC DEFINITIONS ///////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		/** The default color for fireflies in Record mode. */
-		public static const RECORD_COLOR: uint = 0xFFFFFF;
-		/** The default color for fireflies in Playback mode. */
-		public static const PLAYBACK_COLOR: uint = 0x64E000;
-		/** The default color for fireflies in Interject mode. */
-		public static const INTERJECT_COLOR: uint = 0xF5D400;
-		
 		/** The type of snowflake in question. */
 		public var type: String = "";
 		/** Type of the last licked snowflake. */
@@ -49,16 +42,10 @@ package january
 		protected var windX: int = 0;
 		/** Vertical modifier for snowflake movement. */
 		protected var windY: int = 0;
-		/** The amount of headway for flake spawning. */
-		protected static var headwayX: int = 60;
-		/** Whether snowflake is a firefly or not, determined by whether it has been licked. */
-		protected var licked: Boolean;
-		/** The number of seconds to hold the firefly before it starts to fade. */
-		protected var alphaLifespan: Number = 0;
 		
 		// Snowflake spawning probabilities
-		private static var flakes: Array  = ["Small", "Octave", "Harmony", "Chord", "Vamp", "Transpose"];
-		public static var weights: Array = [88.5, 0, 0, 0, 0, 0];
+		private static var flakes: Array = ["Small", "Octave", "Harmony", "Chord", "Vamp", "Transpose"];
+		public static var weights: Array = [ 88.5  ,  3.5	 ,  3.5		,  2	 ,	2	 ,  0.5		  ];
 		
 		// List of classes for getDefinitionByName() to use
 		Small; Octave; Harmony; Chord; Vamp; Transpose;
@@ -75,12 +62,7 @@ package january
 		public static function manage(): void
 		{													
 			// All Flakes are Spawned based on weighted probability, except for the first one.
-			var flakeID: String;
-			
-			 if (FlxG.score > 1)
-				flakeID = flakes[Helper.weightedChoice(weights)];
-			else
-				flakeID = "Small";
+			var flakeID: String = flakes[Helper.weightedChoice(weights)];
 			
 			// use string above to instantiate proper Snowflake Subclass.
 			var subClass: Class = getDefinitionByName( "january.snowflakes." + flakeID ) as Class;			
@@ -90,12 +72,12 @@ package january
 		
 		/** Spawns snowflakes. */
 		protected function spawn(flakeType: String, spawnX: Number = 0):void
-		{															
+		{																		
 			// POSITION
 			if (spawnX != 0)
 				x = spawnX;
 			else
-				x = Helper.randInt(Camera.lens.scroll.x, Camera.anchor.x + headwayX);		
+				x = Helper.randInt(0, FlxG.width);		
 				
 			y = height * -1;
 					
@@ -109,27 +91,17 @@ package january
 			// MOVEMENT //
 			//////////////
 			
-			if (licked == false)
-			{
-				windX = 5 + (FlxG.score * 0.025);
+			windX = 5 + (FlxG.score * 0.025);
+		
+			if (windX >= 10)
+				windX = 10;
 			
-				if (windX >= 10)
-					windX = 10;
+			velocity.x = (Math.cos(y / windX) * windX);
 				
-				velocity.x = (Math.cos(y / windX) * windX);
-					
-				if (FlxG.score == 0)
-					velocity.y = 15;
-				else
-					velocity.y = 5 + (Math.cos(y / 25) * 5) + windY;					
-			}
-			else // FIREFLIES
-			{
-				velocity.x = (Math.cos(y / 4) * 8);
-				maxVelocity.y = 20;
-				drag.y = 5;
-				acceleration.y -= drag.y;
-			}
+			if (FlxG.score == 0)
+				velocity.y = 15;
+			else
+				velocity.y = 5 + (Math.cos(y / 25) * 5) + windY;
 			
 			super.update();
 			
@@ -137,112 +109,24 @@ package january
 			// COLLISION //
 			///////////////
 			
-			if (( y > FlxG.height - 24 && (x + width <= Game.player.x || x >= Game.player.x + Game.player.width)) && x < Game.houseRight.x)
+			if (( y > FlxG.height - 14 && (x + width <= Game.player.x || x >= Game.player.x + Game.player.width)))
 				kill();
-			else if (y >= FlxG.height - 11 || x < Camera.lens.scroll.x - width || x > FlxG.worldBounds.width)
+			else if (y >= FlxG.height - 1 || x < 0 - width || x > FlxG.width)
 				kill();
-			
-			/////////////
-			// EFFECTS //
-			/////////////
-			
-			if (licked == true)
-			{
-				if (alphaLifespan > 0)
-					alphaLifespan -= FlxG.elapsed;
-				else
-					alpha -= FlxG.elapsed;
-				
-				if (alpha <= 0)
-					kill();
-			}
 		}
 		
 		/** Called when a Snowflake has been licked. */
 		public function onLick():void
-		{				
+		{							
 			super.kill();
 			
 			FlxG.score++;
 			
+			// Count How Many of Each Flake Type is Licked, For Custom MIDI File Name
 			if (type != "Small")
 				Game.scores[type]++;
 			
-			// Gradually introduce flakes
-			if (FlxG.score >= Transpose.INTRODUCE_AT)	weights[5] = 0.5;	// Transpose
-			if (FlxG.score >= Vamp.INTRODUCE_AT)		weights[4] = 2;		// Vamp
-			if (FlxG.score >= Chord.INTRODUCE_AT)		weights[3] = 2;		// Chord
-			if (FlxG.score >= Harmony.INTRODUCE_AT)		weights[2] = 3.5;	// Harmony
-			if (FlxG.score >= Octave.INTRODUCE_AT)		weights[1] = 3.5;	// Octave
-			
-			// Increase Flake Probability if Player Keeps Licking that type. only Harmony and Octave Flakes
-			for (var j:int = 1; j <= 2; j++)
-			{
-				// Increment probability by .05%
-				if (type == flakes[j])
-				{
-					weights[j] += 0.05;
-					weights[0] -= 0.05;	
-				}
-				
-				// Limit Probability to 5%
-				if (weights[j] >= 5)
-					weights[j] = 5;
-			}
-			
 			lastLickedType = type;
-		}
-		
-		/** Create a firefly when player has licked snowflake. */
-		public function fly():void
-		{
-			if (mode == "Playback")
-				Playback.numbers.onLick(this);
-			
-//			if (FlxG.score > 1)
-//			{				
-//				var lickedFlake: Class = getDefinitionByName( "january.snowflakes." + type ) as Class;	
-//				var firefly: Object = Game.fireflies.recycle(lickedFlake) as lickedFlake;
-//				firefly.spawnFirefly(type, x, y);
-//			}
-		}
-		
-		/** Spawns fireflies (post-licked snowflakes). */
-		protected function spawnFirefly(flakeType: String, X: Number = 0, Y: Number = 0):void
-		{
-			// CLEAN UP
-			maxVelocity.y = 0; drag.y = 0;	
-			
-			// POSITION
-			x = X; y = Y;	
-			
-			// MODE SPECIFIC STUFF
-			if (mode == "Playback")
-			{
-				color = PLAYBACK_COLOR;
-				//Playback.numbers.onLick(this);
-			}
-			else if (mode == "Interject")
-				color = INTERJECT_COLOR;
-			else
-				color = RECORD_COLOR;
-			
-			// VISUAL FX			
-			alphaLifespan = 1;
-			if (Game.night.layerOn == true)
-			{
-				alpha = Game.night.alpha;	
-				
-				if (alpha >= 0.85)
-					alpha = 1;
-			}
-			else
-				alpha = 0;
-			
-			// ASSIGNMENTS
-			type = flakeType;
-			licked = true;
-			exists = true;
 		}
 		
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,20 +138,20 @@ package january
 		{									
 			i = Intervals.loadout;
 			
-			if (mode == "Playback")									
-				playback();
+			if (Playback.mode == "Repeat")									
+				playSequence();
 			else
 				generateNote();
 			
-			if (mode == "Record")
+			if (Playback.mode == "Write")
 				manageSequence();
 			
 			if (Pedal.mode == true)
 				if (pedalAllowed) playPedalTone();
 		}
 		
-		/** Plays a playback note, pulled from a sequence of stored notes. */
-		final protected function playback():void
+		/** Plays a repeat note, pulled from a sequence of stored notes. */
+		final protected function playSequence():void
 		{
 			//FlxG.log("playback()");
 			
@@ -280,14 +164,17 @@ package january
 			{				
 				// Convert Interval String in Sequence to Note, then play it.
 				var id:String = Playback.sequence[Playback.index];
+				var sound:FlxSound;
 				
 				if (timbre == "Primary")
-					FlxG.play(i[id] as Class, volume, pan);
+					sound = FlxG.play(i[id] as Class, volume, pan);
 				else
 				{
 					var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(i[id] as Class) ) as Class;
-					FlxG.play(modifiedNote, volume/_volumeMod, pan);
+					sound = FlxG.play(modifiedNote, volume/_volumeMod, pan);
 				}
+				
+				inStaccato(sound);
 				
 				Note.lastAbsolute = i[id] as Class;			
 				
@@ -334,14 +221,17 @@ package january
 		final protected function _play(options: Array):void
 		{				
 			var randomNote: Class = noteAdjustments(options);
+			var sound: FlxSound;
 			
 			if (timbre == "Primary")
-				FlxG.play(randomNote, volume, pan);
+				sound = FlxG.play(randomNote, volume, pan);
 			else
 			{
 				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(randomNote) ) as Class;
-				FlxG.play(modifiedNote, volume/_volumeMod, pan);
-			}	
+				sound = FlxG.play(modifiedNote, volume/_volumeMod, pan);
+			}
+			
+			inStaccato(sound);
 			
 			// LOGS
 			MIDI.log(randomNote, volume);
@@ -359,48 +249,37 @@ package january
 			var chordTones: Array = Helper.pickNested(Mode.current.chords);
 		
 			// PUSH NOTES TO FLAM TIMER
-			calculatePan();
+			calculatePan();				
 			
-			// MODIFY ROOT NOTE IF USING SECONDARY TIMBRE
-			if (timbre == "Secondary")
-				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[0]]) ) as Class;
-			
-			// First chord tone of Vamp should play immediately, because there is no playNote() function call.
-			if (type == "Vamp")
-			{
-				if (timbre == "Primary")
-					FlxG.play(i[chordTones[0]], Chord.VOLUME, pan);
-				else
-					FlxG.play(modifiedNote, Chord.VOLUME/_volumeMod, pan);
-			}
-			else
-			{
-				var s1:FlxSound;
-				
-				if (timbre == "Primary")
-					s1 = FlxG.loadSound(i[chordTones[0]], Chord.VOLUME, pan);	
-				else
-					s1 = FlxG.loadSound(modifiedNote, Chord.VOLUME/_volumeMod, pan);
-				
-				Game.flamNotes.push(s1);
-			}
-			
+			var s1:FlxSound;
 			var s2:FlxSound;
 			var s3:FlxSound;
 			
 			if (timbre == "Primary")
 			{
+				s1 = FlxG.loadSound(i[chordTones[0]], Chord.VOLUME, 0);
 				s2 = FlxG.loadSound(i[chordTones[1]], Chord.VOLUME, -1);
 				s3 = FlxG.loadSound(i[chordTones[2]], Chord.VOLUME, 1);
 			}
 			else
 			{
+				var _s1: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[0]]) ) as Class;
 				var _s2: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[1]]) ) as Class;
 				var _s3: Class = getDefinitionByName("_" + getQualifiedClassName(i[chordTones[2]]) ) as Class;
+				var _vol: Number = Chord.VOLUME/_volumeMod;
 				
-				s2 = FlxG.loadSound(_s2, Chord.VOLUME/_volumeMod, -1);
-				s3 = FlxG.loadSound(_s3, Chord.VOLUME/_volumeMod, 1);
+				s1 = FlxG.loadSound(_s1, _vol, 0);
+				s2 = FlxG.loadSound(_s2, _vol, -1);
+				s3 = FlxG.loadSound(_s3, _vol, 1);
 			}
+			
+			if (type == "Vamp")
+			{
+				s1.play();
+				MIDI.log(i[chordTones[0]], Chord.VOLUME);
+			}
+			else
+				Game.flamNotes.push(s1);
 			
 			Game.flamNotes.push(s2, s3);
 			
@@ -433,6 +312,7 @@ package january
 		final protected function playPedalTone():void
 		{	
 			var pedalTone:Class = Note.lastAbsolute;
+			var sound:FlxSound;
 			
 			while (pedalTone == Note.lastAbsolute 
 				|| pedalTone == Note.lastPedal
@@ -443,12 +323,14 @@ package january
 			}
 			
 			if (timbre == "Primary")
-				FlxG.play(pedalTone, volume/2, 0);
+				sound = FlxG.play(pedalTone, volume/2, 0);
 			else
 			{
 				var modifiedNote: Class = getDefinitionByName("_" + getQualifiedClassName(pedalTone) ) as Class;
-				FlxG.play(modifiedNote, volume/(2 + _volumeMod), 0);
+				sound = FlxG.play(modifiedNote, volume/(2 + _volumeMod), 0);
 			}
+			
+			inStaccato(sound);
 			
 			Note.lastPedal = pedalTone;
 			MIDI.log(pedalTone, volume/2);
@@ -462,8 +344,19 @@ package january
 		final protected function generateNote():void
 		{
 			var played: Boolean;
-			var optionSets: Array = Mode.current.logic;
+			var optionSets: Array;
 			
+			if (Scale.isPentatonic == false)
+				optionSets = Mode.current.logic;
+			else
+			{
+				if (Mode.current == Mode.AEOLIAN ||
+					Mode.current == Mode.DORIAN)
+					optionSets = Scale.MINOR_PENTATONIC.logic;
+				else
+					optionSets = Scale.MAJOR_PENTATONIC.logic;
+			}
+					
 			loop: for (var j:int = 0; j < Intervals.DATABASE.length - 1; j++)
 			{				
 				if (Note.lastRecorded == i[Intervals.DATABASE[j]])
@@ -486,7 +379,22 @@ package january
 		final protected function calculatePan():void
 		{
 			// Convert x position to pan position.
-			pan = 2 * ((this.x - Camera.lens.scroll.x) / FlxG.width) - 1;
+			pan = 2 * ((this.x / FlxG.width)) - 1;
+		}
+		
+		protected function inStaccato(sound: FlxSound):void
+		{
+			if (Playback.noteLength != "Full")
+			{
+				var fadeAmt: Number;
+				
+				if (Playback.noteLength == "Random")
+					fadeAmt = Helper.rand(2, 8);
+				else
+					fadeAmt = 3.75;
+				
+				sound.fadeOut(fadeAmt);
+			}
 		}
 		
 		final protected function noteAdjustments(options: Array):Class
@@ -494,17 +402,27 @@ package january
 			var note: Class;
 			var random: int;
 			
-			// NOTE PREVENTIONS			
-			while (note == null
-				|| note == Note.lastAbsolute
-				|| note == Note.secondToLastRecorded
-				|| (note == Note.lastHarmony && lastLickedType == "Harmony")
-				|| (note == Note.lastOctave && lastLickedType == "Octave")
-				|| (type == "Octave" && (note == i.for1 || note == i.for2 || note == i.for3)) )
+			// NOTE PREVENTIONS
+			random = Helper.randInt(0, options.length - 1);
+			note = i[options[random]] as Class;
+			
+			// Halve Probability of Trills and Repeats
+			if (note == Note.secondToLastRecorded || note == Note.lastAbsolute)
 			{
 				random = Helper.randInt(0, options.length - 1);
 				note = i[options[random]] as Class;
 			}
+			
+			var g:int = 0;		
+			while (g < 100 && (note == null
+				|| (note == Note.lastHarmony && lastLickedType == "Harmony")
+				|| (note == Note.lastOctave && lastLickedType == "Octave")
+				|| (type == "Octave" && (note == i.for1 || note == i.for2 || note == i.for3)) ))
+			{
+				random = Helper.randInt(0, options.length - 1);
+				note = i[options[random]] as Class;
+				g++;
+			}				
 			
 			// Prevent certain tensions from triggering on record mode key changes
 			if (Key.justChanged

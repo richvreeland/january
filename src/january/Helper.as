@@ -47,7 +47,7 @@ package january
 		}
 		
 		/** Generate a random boolean result based on the chance value. */
-		public static function chanceRoll(chance:int = 50):Boolean
+		public static function chanceRoll(chance:Number = 50):Boolean
 		{
 			if (chance <= 0)
 				return false;
