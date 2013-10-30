@@ -1,6 +1,5 @@
 package january
 {
-	import org.flexunit.runner.manipulation.filters.AbstractFilter;
 	import org.flixel.FlxG;
 	
 	final public class Helper
