@@ -8,7 +8,7 @@ Controls: Arrow Keys or WASD. Look Up!
 
 January was created in Adobe Flash Builder 4.6. If you are using 4.7, the application will try to use the AiR SDK by default, but you should be using the Flex SDK. See further instructions here: http://stackoverflow.com/questions/16590147/issues-getting-flash-builder-4-6-air-app-to-compile-correctly-with-flash-builder
 
-We're working on setting this repository up to work in non Flash Builder settings by default, so people don't have to go out and buy expensive software. But in the interim, you could run the Flash Builder 4.6 trial: http://www.adobe.com/support/flex/downloads_updaters.html#flex4_6_trial
+We're working on setting this repository up to work in non Flash Builder settings by default, so people don't have to go out and buy Flash Builder. But in the interim, you could run the Flash Builder 4.6 trial: http://www.adobe.com/support/flex/downloads_updaters.html#flex4_6_trial
 
 ## Advanced Controls
 
