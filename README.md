@@ -4,6 +4,10 @@ January is a generative music tool. You walk around and lick snowflakes with you
 
 Controls: Arrow Keys or WASD. Look Up!
 
+## Compatibility
+
+January was created in Adobe Flash Builder 4.6. If you are using 4.7, the application will try to use the AiR SDK by default, but you should be using the Flex SDK. See further instructions here: http://stackoverflow.com/questions/16590147/issues-getting-flash-builder-4-6-air-app-to-compile-correctly-with-flash-builder
+
 ## Advanced Controls
 
 - `[` and `]` - Use Brackets to Toggle Through Game Modes.
