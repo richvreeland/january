@@ -6,7 +6,10 @@ Controls: Arrow Keys or WASD. Look Up!
 
 ## Compatibility
 
-January was created in Adobe Flash Builder 4.6. If you are using 4.7, the application will try to use the AiR SDK by default, but you should be using the Flex SDK. See further instructions here: http://stackoverflow.com/questions/16590147/issues-getting-flash-builder-4-6-air-app-to-compile-correctly-with-flash-builder
+January was created in Adobe Flash Builder 4.6.
+
+If you are using 4.7, Brian Spilth has created a fork that will work off the bat: https://github.com/spilth/january/tree/flash-builder-4.7
+If you wish to know more ... the application will try to use the AiR SDK by default, but you should be using the Flex SDK. See further instructions here: http://stackoverflow.com/questions/16590147/issues-getting-flash-builder-4-6-air-app-to-compile-correctly-with-flash-builder
 
 We're working on setting this repository up to work in non Flash Builder settings by default, so people don't have to go out and buy Flash Builder. But in the interim, you could run the Flash Builder 4.6 trial: http://www.adobe.com/support/flex/downloads_updaters.html#flex4_6_trial
 
