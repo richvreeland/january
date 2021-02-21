@@ -1,5 +1,7 @@
 # January
 
+This (original) version of January is no longer being updated. Development continues at https://github.com/richvreeland/hf-january, where desktop builds are available.
+
 January is a generative music tool. You walk around and lick snowflakes with your tongue, and the tool uses a set of rules to make choices about what the next note (or notes) will be. It also gives the player freedom to play various types of chords, and choose when and how notes will be played. There are a bunch of advanced features, which you can explore below. It was made with [Flixel](http://www.flixel.org) and Flash/AS3. Feel free to shoot me an e-mail if you'd like to know more.
 
 Controls: Arrow Keys or WASD. Look Up!
